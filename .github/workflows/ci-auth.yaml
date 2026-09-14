@@ -25,6 +25,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Setup
+        id: build-setup
+        run: echo "short-sha=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_OUTPUT
+
+
       # Step 1: Checkout do código
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,10 +65,10 @@ jobs:
         uses: docker/build-push-action@v6
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          FULL_SHA: ${{ github.sha }}
+          SHORT_SHA: ${{ steps.build-setup.outputs.short-sha }}
         with:
           context: ./auth-service-main
           file: ./auth-service-main/Dockerfile
           push: true
-          tags: $ECR_REGISTRY/$ECR_REPOSITORY:${FULL_SHA:0:7}
+          tags: $ECR_REGISTRY/$ECR_REPOSITORY:$SHORT_SHA
         
