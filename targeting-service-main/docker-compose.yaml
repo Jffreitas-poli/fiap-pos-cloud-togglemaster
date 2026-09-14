@@ -6,7 +6,7 @@ services:
     ports:
       - 8003:8003
     environment:
-      - DATABASE_URL=postgres://postgres:10f29102@targeting-postgres:5432/targeting_db
+      - DATABASE_URL=postgres://postgres:<POSTGRES_PASSWORD>@targeting-postgres:5432/targeting_db
       - PORT=8003
       - AUTH_SERVICE_URL=http://auth-service-main-auth-1:8001
     depends_on:
@@ -24,7 +24,7 @@ services:
     restart: always
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=10f29102
+      - POSTGRES_PASSWORD=<POSTGRES_PASSWORD>
       - POSTGRES_DB=targeting_db
     expose:
       - 5432

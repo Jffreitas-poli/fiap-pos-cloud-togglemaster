@@ -6,9 +6,9 @@ services:
     ports:
       - 8001:8001
     environment:
-      - DATABASE_URL=postgres://postgres:44d870fc@auth-postgres:5432/auth_db
+      - DATABASE_URL=postgres://postgres:<POSTGRES_PASSWORD>@auth-postgres:5432/auth_db
       - PORT=8001
-      - MASTER_KEY=admin-secreto-123
+      - MASTER_KEY=<MASTER_KEY>
     depends_on:
       - auth-postgres
     networks:
@@ -24,7 +24,7 @@ services:
     restart: always
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=44d870fc
+      - POSTGRES_PASSWORD=<POSTGRES_PASSWORD>
       - POSTGRES_DB=auth_db
     expose:
       - 5432
