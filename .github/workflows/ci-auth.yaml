@@ -125,10 +125,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Run gosec security scanner
-        uses: securego/gosec@master
-        with:
-          args: '-severity high ./${{ env.WORK_DIR }}/...'
+      - name: Run Gosec Security Scanner
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          go get github.com/securego/gosec/cmd/gosec
+          gosec ./${{ env.WORK_DIR }}/...
 
 
   # ============================================
