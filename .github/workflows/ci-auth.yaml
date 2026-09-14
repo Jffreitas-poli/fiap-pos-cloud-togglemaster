@@ -17,16 +17,16 @@ permissions:
   id-token: write   # Permissão para autenticar em prod
   contents: read
 
-defaults:
-  run:
-    working-directory: ./auth-service-main
-
 jobs:
   # ============================================
   # JOB: Build do código
   # ============================================
   build:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./auth-service-main
 
     steps:
       - uses: actions/checkout@v6
@@ -90,8 +90,8 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           SHORT_SHA: ${{ steps.build-setup.outputs.short-sha }}
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./auth-service-main
+          file: ./auth-service-main/Dockerfile
           push: true
           tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.SHORT_SHA }}
         
