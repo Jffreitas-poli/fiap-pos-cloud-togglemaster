@@ -29,17 +29,29 @@ jobs:
         working-directory: ./auth-service-main
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.21.x'
+
       - name: Install dependencies
         run: go get .
+
       - name: Build
         run: go build -v ./...
+
       - name: Test with the Go CLI
         run: go test
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+
+
   # ============================================
   # JOB: Build da imagem e Deploy
   # ============================================
@@ -53,38 +65,19 @@ jobs:
         id: build-setup
         run: echo "short-sha=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_OUTPUT
 
-
-      # Step 1: Checkout do código
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Configurar credenciais AWS
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.ROLE_GITHUB_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Step 3: Login no ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-#      # Step 4: Build e Push da imagem
-#      - name: Build and push Docker image
-#        id: build-image
-#        env:
-#          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-#          IMAGE_TAG: ${{ github.sha }}
-#        run: |
-#          docker build --platform linux/amd64 \
-#            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-#            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-#          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-#          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-#          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      # Step 4: Build e Push da imagem
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         env:
