@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 
 # Final stage
-FROM python:3.11-slim
+FROM dockerdevrel/dhi-python:3.13-dev
 
 WORKDIR /app
 
