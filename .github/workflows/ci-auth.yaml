@@ -130,19 +130,19 @@ jobs:
         with:
           go-version: '1.21.x'
 
-#      - name: Run Gosec Security Scanner
-#        run: |
-#          export PATH=$PATH:$(go env GOPATH)/bin
-#          go install github.com/securego/gosec/v2/cmd/gosec@latest
-#          gosec -severity high ./...
-
       - name: Install dependencies
         run: go mod tidy
+
+      - name: Run Gosec Security Scanner
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          gosec -severity high ./...
       
-      - name: Run govulncheck
-        uses: golang/govulncheck-action@v1
-        with:
-          work-dir: './${{ env.WORK_DIR }}'
+#      - name: Run govulncheck
+#        uses: golang/govulncheck-action@v1
+#        with:
+#          work-dir: './${{ env.WORK_DIR }}'
 
 
   # ============================================
@@ -153,10 +153,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup
-        id: build-setup
-        run: echo "short-sha=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_OUTPUT
-
       - name: Checkout
         uses: actions/checkout@v4
 
