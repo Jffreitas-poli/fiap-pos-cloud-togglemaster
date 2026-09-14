@@ -187,7 +187,7 @@ jobs:
       contents: write
     defaults:
       run:
-        working-directory: ./${{ env.ARGO_DIR }}
+        working-directory: ${{ env.ARGO_DIR }}
 
     steps:
       - name: Setup
