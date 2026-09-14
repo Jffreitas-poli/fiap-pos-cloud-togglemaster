@@ -1,0 +1,122 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evaluation-configmap
+  namespace: evaluation
+data:
+  PORT: "8004"
+  REDIS_URL: "redis://tc-prod-redis.lxhszc.ng.0001.use2.cache.amazonaws.com:6379/0"
+  FLAG_SERVICE_URL: "http://flag-service.flag.svc.cluster.local:8002"
+  TARGETING_SERVICE_URL: "http://targeting-service.targeting.svc.cluster.local:8003"
+  AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/047719652987/tc-prod-sqs"
+  AWS_REGION: "us-east-1"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evaluation-deployment
+  namespace: evaluation
+  labels:
+    app: evaluation
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: evaluation
+  template:
+    metadata:
+      labels:
+        app: evaluation
+    spec:
+      containers:
+      - name: evaluation-container
+        image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-evaluation:15281e91
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "20m"
+          limits:
+            memory: "128Mi"
+            cpu: "40m"
+        ports:
+        - containerPort: 8004
+        envFrom:
+        - configMapRef:
+            name: evaluation-configmap
+        - secretRef:
+            name: evaluation-secret
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8004
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: evaluation-hpa
+  namespace: evaluation
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: evaluation-deployment
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: evaluation-ingress
+  namespace: evaluation
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /evaluation(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: evaluation-service
+            port:
+              number: 8004
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: evaluation
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: evaluation-secret
+  namespace: evaluation
+type: Opaque
+data:
+  SERVICE_API_KEY: dG1fa2V5X2JhODYxZWJiZjc2ZWEwYmM5ZWRmNjlhYTRjYzVlMzkxYWExNTEzNjcyYmY1MjFiOWE1OTkzMTQzOGM1N2NhOTA=
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: evaluation-service
+  namespace: evaluation
+spec:
+  selector:
+    app: evaluation
+  ports:
+    - protocol: TCP
+      port: 8004
+      targetPort: 8004
+  type: ClusterIP
