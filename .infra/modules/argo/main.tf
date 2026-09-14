@@ -1,3 +1,11 @@
+provider "helm" {
+  kubernetes = {
+    host                   = var.cluster_endpoint
+    cluster_ca_certificate = base64decode(var.cluster_certificate_authority_data)
+    token                  = var.cluster_token
+  }
+}
+
 module "eks_blueprints_addons" {
   source  = "aws-ia/eks-blueprints-addons/aws"
   version = ">= 1.16"
@@ -14,7 +22,7 @@ module "eks_blueprints_addons" {
     chart_version = "5.53.0"
     repository    = "https://argoproj.github.io/argo-helm"
     namespace     = "argocd"
-    
+
     # Custom values passed directly or via set
     set = [
       {
@@ -25,7 +33,13 @@ module "eks_blueprints_addons" {
   }
 }
 
-resource "kubernetes_manifest" "argo" {
+provider "kubernetes" {
+  host                   = var.cluster_endpoint
+  cluster_ca_certificate = base64decode(var.cluster_certificate_authority_data)
+  token                  = var.cluster_token
+}
+
+resource "kubernetes_manifest" "argocd_application" {
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
@@ -37,7 +51,7 @@ resource "kubernetes_manifest" "argo" {
       ]
     }
     spec = {
-      project = "default"
+      project = "Togglemaster"
       source = {
         repoURL        = "https://github.com/Jffreitas-poli/fiap-pos-cloud-togglemaster.git"
         targetRevision = "main"

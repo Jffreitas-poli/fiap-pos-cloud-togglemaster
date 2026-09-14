@@ -7,6 +7,12 @@ variable "cluster_endpoint" {
 variable "cluster_version" {
   type = string
 }
+variable "cluster_token" {
+  type = string
+}
+variable "cluster_certificate_authority_data" {
+  type = string
+}
 variable "oidc_provider_arn" {
   type = string
 }
