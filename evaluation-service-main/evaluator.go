@@ -12,6 +12,10 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"net"
+	"net/url"
+	"strings"
 )
 
 const (
@@ -107,7 +111,23 @@ func (a *App) fetchFlag(flagName string) (*Flag, error) {
 	url := fmt.Sprintf("%s/flags/%s", a.FlagServiceURL, flagName)
 
 	apiKey := os.Getenv("SERVICE_API_KEY")
-	req, _ := http.NewRequest("GET", url, nil)
+
+	// Define allowed hosts (or pass nil if scanning arbitrary public domains)
+	allowedDomains := []string{}
+
+	// Validate and sanitize the input URL string
+	safeURL, err := ValidateAndSanitizeURL(url, allowedDomains)
+	if err != nil {
+		// Handle invalid/unsafe URL error appropriately
+		return nil, fmt.Errorf("URL validation failed: %w", err)
+	}
+
+	// Pass safeURL.String() or safeURL to http.NewRequest
+	req, err := http.NewRequest("GET", safeURL.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("URL validation failed: %w", err)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 
 	resp, err := a.HttpClient.Do(req)
@@ -200,4 +220,59 @@ func getDeterministicBucket(input string) int {
 
 	// Retorna o módulo 100
 	return int(val % 100)
+}
+
+// ValidateAndSanitizeURL checks if a given URL string is safe against SSRF attacks.
+// It enforces HTTP/HTTPS schemes, verifies domain/host whitelist, and prevents internal IP access.
+func ValidateAndSanitizeURL(rawURL string, allowedHosts []string) (*url.URL, error) {
+	parsedURL, err := url.ParseRequestURI(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("invalid URL format: %w", err)
+	}
+
+	// 1. Enforce safe schemes only
+	scheme := strings.ToLower(parsedURL.Scheme)
+	if scheme != "http" && scheme != "https" {
+		return nil, fmt.Errorf("unsupported URL scheme: %s", parsedURL.Scheme)
+	}
+
+	hostname := parsedURL.Hostname()
+	if hostname == "" {
+		return nil, fmt.Errorf("URL missing hostname")
+	}
+
+	// 2. Validate against host whitelist (if provided)
+	if len(allowedHosts) > 0 {
+		allowed := false
+		for _, host := range allowedHosts {
+			if strings.EqualFold(hostname, host) {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			return nil, fmt.Errorf("hostname %s is not in the allowed list", hostname)
+		}
+	}
+
+	// 3. Prevent loopback and private IP access (SSRF protection)
+	ip := net.ParseIP(hostname)
+	if ip != nil {
+		if ip.IsLoopback() || ip.IsPrivate() || ip.IsUnspecified() || ip.IsLinkLocalUnicast() {
+			return nil, fmt.Errorf("access to private or internal IP %s is forbidden", hostname)
+		}
+	} else {
+		// Resolve hostname to IP to prevent DNS rebinding or localhost resolutions
+		ips, err := net.LookupIP(hostname)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve host %s: %w", hostname, err)
+		}
+		for _, resolvedIP := range ips {
+			if resolvedIP.IsLoopback() || resolvedIP.IsPrivate() || resolvedIP.IsUnspecified() || resolvedIP.IsLinkLocalUnicast() {
+				return nil, fmt.Errorf("hostname %s resolves to internal IP %s", hostname, resolvedIP.String())
+			}
+		}
+	}
+
+	return parsedURL, nil
 }
