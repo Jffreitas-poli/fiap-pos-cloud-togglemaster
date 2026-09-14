@@ -58,7 +58,7 @@ jobs:
   # ============================================
   # JOB: Static Go Lint
   # ============================================
-  go-lint:
+  lint:
     name: Lint com golangci-lint
     runs-on: ubuntu-latest
     needs: build
@@ -82,7 +82,7 @@ jobs:
   # ============================================
   # JOB: SCA (vulnerabilidades de dependencias)
   # ============================================
-  go-sca:
+  sca:
     name: SCA com Trivy
     runs-on: ubuntu-latest
     needs: build
@@ -107,7 +107,7 @@ jobs:
   deploy:
     name: Build da imagem e Deploy
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, lint, sca]
 
     steps:
       - name: Setup
