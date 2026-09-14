@@ -2,7 +2,7 @@
 # WORKFLOW: Deploy da imagem para ECR
 # Automatiza build e deploy da aplicação
 # ============================================
-name: CI - auth
+name: CI - evaluation
 
 on:
 #  push:
@@ -11,8 +11,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: tc-prod-ecr-auth
-  WORK_DIR: auth-service-main
+  ECR_REPOSITORY: tc-prod-ecr-evaluation
+  WORK_DIR: evaluation-service-main
 
 permissions:
   id-token: write   # Permissão para autenticar em prod
