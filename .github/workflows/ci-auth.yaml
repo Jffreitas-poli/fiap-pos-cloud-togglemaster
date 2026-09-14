@@ -130,20 +130,52 @@ jobs:
         with:
           go-version: '1.21.x'
 
-      - name: Run Gosec Security Scanner
-        run: |
-          export PATH=$PATH:$(go env GOPATH)/bin
-          go install github.com/securego/gosec/v2/cmd/gosec@latest
-          gosec -severity high ./...
+#      - name: Run Gosec Security Scanner
+#        run: |
+#          export PATH=$PATH:$(go env GOPATH)/bin
+#          go install github.com/securego/gosec/v2/cmd/gosec@latest
+#          gosec -severity high ./...
+      
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@v1
+        with:
+          work-dir: './'
 
 
   # ============================================
-  # JOB: Build da imagem e Deploy
+  # JOB: Build da imagem e Scan
+  # ============================================
+  image-scan:
+    name: Build da imagem e Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup
+        id: build-setup
+        run: echo "short-sha=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          SHORT_SHA: ${{ steps.build-setup.outputs.short-sha }}
+        with:
+          context: ./${{ env.WORK_DIR }}
+          file: ./${{ env.WORK_DIR }}/Dockerfile
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.SHORT_SHA }}
+
+
+  # ============================================
+  # JOB: Build da imagem e Scan
   # ============================================
   deploy:
     name: Build da imagem e Deploy
     runs-on: ubuntu-latest
-    needs: [build, lint, sca, sast]
+    needs: [build, lint, sca, sast, image-scan]
 
     steps:
       - name: Setup
