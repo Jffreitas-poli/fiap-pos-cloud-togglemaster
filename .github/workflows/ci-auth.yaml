@@ -12,6 +12,7 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: tc-prod-ecr-auth
+  WORK_DIR: auth-service-main
 
 permissions:
   id-token: write   # Permissão para autenticar em prod
@@ -22,11 +23,12 @@ jobs:
   # JOB: Build do código
   # ============================================
   build:
+    name: Build do código e Go Lint
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: ./auth-service-main
+        working-directory: ./${{ env.WORK_DIR }}
 
     steps:
       - name: Checkout
@@ -50,6 +52,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.60
+          working-directory: ./${{ env.WORK_DIR }}
 
 
   # ============================================
@@ -84,8 +87,8 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           SHORT_SHA: ${{ steps.build-setup.outputs.short-sha }}
         with:
-          context: ./auth-service-main
-          file: ./auth-service-main/Dockerfile
+          context: ./${{ env.WORK_DIR }}
+          file: ./${{ env.WORK_DIR }}/Dockerfile
           push: true
           tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.SHORT_SHA }}
         
