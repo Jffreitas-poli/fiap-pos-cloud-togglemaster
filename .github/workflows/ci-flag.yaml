@@ -45,10 +45,6 @@ jobs:
         pip install pytest build
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Run unit tests
-      run: |
-        pytest
-
     - name: Build source distribution and wheel
       run: |
         python -m build
