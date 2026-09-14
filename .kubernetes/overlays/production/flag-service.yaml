@@ -6,6 +6,11 @@ metadata:
 data:
   PORT: "8002"
   AUTH_SERVICE_URL: "http://auth-service.auth.svc.cluster.local:8001"
+spec:
+  template:
+    spec:
+      containers:
+        - image: null
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -26,7 +31,7 @@ spec:
     spec:
       containers:
         - name: flag-container
-          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-flag:b2de6aa1
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-flag:c5dcaa4c
           resources:
             requests:
               memory: "64Mi"
@@ -67,11 +72,20 @@ spec:
                 name: flag-service
                 port:
                   number: 8002
+  template:
+    spec:
+      containers:
+        - image: null
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: flag
+spec:
+  template:
+    spec:
+      containers:
+        - image: null
 ---
 apiVersion: v1
 kind: Secret
@@ -82,6 +96,11 @@ metadata:
 type: Opaque
 data:
   DATABASE_URL: cG9zdGdyZXM6Ly9wb3N0Z3JlczpLY1k4TkpRQUQxTWFLTkNUQUJ0a0B0Yy1wcm9kLXJkcy1mbGFnLmNramNrNDRvMmN4Zy51cy1lYXN0LTEucmRzLmFtYXpvbmF3cy5jb206NTQzMi9mbGFnc19kYg==
+spec:
+  template:
+    spec:
+      containers:
+        - image: null
 ---
 apiVersion: v1
 kind: Service
@@ -96,3 +115,7 @@ spec:
       port: 8002
       targetPort: 8002
   type: ClusterIP
+  template:
+    spec:
+      containers:
+        - image: null
