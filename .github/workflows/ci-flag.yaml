@@ -185,9 +185,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    defaults:
-      run:
-        working-directory: ${{ env.ARGO_DIR }}
 
     steps:
       - name: Setup
@@ -201,12 +198,13 @@ jobs:
   
       - name: Update Kubernetes Manifest
         env:
-          # Pass the image and tag from your build step/environment variables
           NEW_IMAGE: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ steps.update-setup.outputs.short-sha }}"
+        working-directory: ${{ env.ARGO_DIR }}
         run: |
           yq e -i '.spec.template.spec.containers[0].image = env(NEW_IMAGE)' ${{ env.ARGO_APP }}.yaml
   
       - name: Commit and Push Changes
+        working-directory: ${{ env.ARGO_DIR }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
