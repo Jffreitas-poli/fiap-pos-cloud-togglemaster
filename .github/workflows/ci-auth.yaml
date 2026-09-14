@@ -160,16 +160,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build and push Docker image
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build local Docker image
         uses: docker/build-push-action@v6
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          SHORT_SHA: ${{ steps.build-setup.outputs.short-sha }}
         with:
           context: ./${{ env.WORK_DIR }}
           file: ./${{ env.WORK_DIR }}/Dockerfile
-          push: true
-          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.SHORT_SHA }}
+          load: true
+          tags: my-app:latest
+
+      - name: Run Trivy container image scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'my-app:latest'
+          scan-type: 'image'
+          format: 'table'
+          severity: 'CRITICAL'
+          exit-code: '1'
 
 
   # ============================================
