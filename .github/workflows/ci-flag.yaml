@@ -48,3 +48,57 @@ jobs:
     - name: Run Pylint
       run: |
         pylint --errors-only $(git ls-files '*.py')
+
+
+  # ============================================
+  # JOB: SCA (vulnerabilidades de dependencias)
+  # ============================================
+  sca:
+    name: SCA com Trivy
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./${{ env.WORK_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './${{ env.WORK_DIR }}'
+          format: 'table'
+          severity: 'CRITICAL'
+          exit-code: '1'
+
+
+  # ============================================
+  # JOB: SAST (vulnerabilidades no código)
+  # ============================================
+  sast:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./${{ env.WORK_DIR }}
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Bandit
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit
+
+    - name: Run Bandit SAST scan
+      run: |
+        bandit -r . -lll -iii
