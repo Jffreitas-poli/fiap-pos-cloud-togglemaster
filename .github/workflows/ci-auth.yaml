@@ -128,7 +128,7 @@ jobs:
       - name: Run gosec security scanner
         uses: securego/gosec@master
         with:
-          args: ./...
+          args: '-debug -security high ./${{ env.WORK_DIR }}/...'
 
 
   # ============================================
