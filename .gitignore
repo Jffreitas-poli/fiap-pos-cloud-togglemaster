@@ -1,0 +1,31 @@
+### Terraform ###
+# Pasta local de plugins e módulos
+.infra/environment/prod/.terraform/
+# Arquivos de estado (contêm dados sensíveis do seu infra)
+*.tfstate
+*.tfstate.*
+# Variáveis de ambiente/segredos (nunca envie estes)
+*.tfvars
+*.tfvars.json
+# Arquivos de log de crash
+crash.log
+crash.*.log
+# Arquivos de plano (podem conter segredos em texto puro)
+*.tfplan
+
+### GitHub Actions (Falsos positivos / Ambientes Locais) ###
+# Se você usa ferramentas como o 'act' para rodar o GitHub Actions localmente:
+.act/
+
+### Arquivos de Ambiente Globais e IDEs ###
+.env
+.env.local
+.env.*
+.DS_Store
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
