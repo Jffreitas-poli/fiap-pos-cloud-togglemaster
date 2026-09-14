@@ -79,6 +79,7 @@ jobs:
   # JOB: SAST (vulnerabilidades no código)
   # ============================================
   sast:
+    name: SAST com bandit
     runs-on: ubuntu-latest
 
     defaults:
@@ -102,3 +103,73 @@ jobs:
     - name: Run Bandit SAST scan
       run: |
         bandit -r . -lll -iii
+
+
+  # ============================================
+  # JOB: Build da imagem e Scan
+  # ============================================
+  image-scan:
+    name: Build da imagem e Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build local Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ env.WORK_DIR }}
+          file: ./${{ env.WORK_DIR }}/Dockerfile
+          load: true
+          tags: my-app:latest
+
+      - name: Run Trivy container image scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'my-app:latest'
+          scan-type: 'image'
+          format: 'table'
+          severity: 'CRITICAL'
+          exit-code: '1'
+
+
+  # ============================================
+  # JOB: Build da imagem e Scan
+  # ============================================
+  deploy:
+    name: Build da imagem e Deploy
+    runs-on: ubuntu-latest
+    needs: [lint, sca, sast, image-scan]
+
+    steps:
+      - name: Setup
+        id: build-setup
+        run: echo "short-sha=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.ROLE_GITHUB_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          SHORT_SHA: ${{ steps.build-setup.outputs.short-sha }}
+        with:
+          context: ./${{ env.WORK_DIR }}
+          file: ./${{ env.WORK_DIR }}/Dockerfile
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.SHORT_SHA }}
