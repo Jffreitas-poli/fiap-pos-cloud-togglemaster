@@ -56,18 +56,18 @@ resource "aws_vpc_security_group_ingress_rule" "sgr_ingress_redis" {
   security_group_id = var.sg_redis
 
   referenced_security_group_id = module.eks.node_security_group_id
-  from_port = 6379
-  to_port = 6379
-  ip_protocol = "tcp"
+  from_port                    = 6379
+  to_port                      = 6379
+  ip_protocol                  = "tcp"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "sgr_ingress_rds" {
   security_group_id = var.sg_rds
 
   referenced_security_group_id = module.eks.node_security_group_id
-  from_port = 5432
-  to_port = 5432
-  ip_protocol = "tcp"
+  from_port                    = 5432
+  to_port                      = 5432
+  ip_protocol                  = "tcp"
 }
 
 resource "aws_iam_role" "eks_developer_role" {

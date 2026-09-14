@@ -2,7 +2,7 @@
 module "keda_identity" {
   source            = "./pod_identity"
   env               = var.env
-  cluster_name = var.cluster_name
+  cluster_name      = var.cluster_name
   service_namespace = "keda"
   service_account   = "keda-operator"
 
@@ -25,7 +25,7 @@ module "keda_identity" {
 module "cluster_secret_store_identity" {
   source            = "./pod_identity"
   env               = var.env
-  cluster_name = var.cluster_name
+  cluster_name      = var.cluster_name
   service_namespace = "external-secrets"
   service_account   = "external-secrets"
 
@@ -48,7 +48,7 @@ module "cluster_secret_store_identity" {
 module "evaluation_identity" {
   source            = "./pod_identity"
   env               = var.env
-  cluster_name = var.cluster_name
+  cluster_name      = var.cluster_name
   service_namespace = "toggle"
   service_account   = "evaluation-service"
 
@@ -71,7 +71,7 @@ module "evaluation_identity" {
 module "analytics_identity" {
   source            = "./pod_identity"
   env               = var.env
-  cluster_name = var.cluster_name
+  cluster_name      = var.cluster_name
   service_namespace = "toggle"
   service_account   = "analytics-service"
 
