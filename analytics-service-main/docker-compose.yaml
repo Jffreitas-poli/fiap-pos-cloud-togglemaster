@@ -1,0 +1,24 @@
+services:
+  analytics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8005:8005
+    environment:
+      - PORT=8005
+      - AWS_SQS_URL=httpsiso://[sqs.us-east-1.amazonaws.com/123456789012/sua-fila](https://sqs.us-east-1.amazonaws.com/123456789012/sua-fila)
+      - AWS_DYNAMODB_TABLE=ToggleMasterAnalytics
+      - AWS_REGION=us-east-1
+    networks:
+      - shared
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+networks:
+  shared:
+    external: true
+    name: inter-project

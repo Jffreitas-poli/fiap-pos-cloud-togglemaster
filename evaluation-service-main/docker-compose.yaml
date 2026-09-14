@@ -1,0 +1,47 @@
+services:
+  evaluation:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8004:8004
+    environment:
+      - PORT=8004
+      - REDIS_URL=redis://evaluation-redis:6379/0
+      - FLAG_SERVICE_URL=http://flag-service-main-flag-1:8002
+      - TARGETING_SERVICE_URL=http://targeting-service-main-targeting-1:8003
+      - SERVICE_API_KEY=tm_key_bdee1a5a70903b4ccb5f1e1e18b837f181f405ed1c4f3ee7e18db2fc7448057d
+      - AWS_SQS_URL=[https://sqs.us-east-1.amazonaws.com/123456789012/sua-fila](https://sqs.us-east-1.amazonaws.com/123456789012/sua-fila)
+      - AWS_REGION=us-east-1
+    depends_on:
+      - evaluation-redis
+    networks:
+      - shared
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  evaluation-redis:
+    image: redis
+    restart: always
+    expose:
+      - 6379
+    volumes:
+      - evaluation-redis-data:/data
+    networks:
+      - shared
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  evaluation-redis-data:
+
+networks:
+  shared:
+    external: true
+    name: inter-project

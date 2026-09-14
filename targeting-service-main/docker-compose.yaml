@@ -1,0 +1,48 @@
+services:
+  targeting:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8003:8003
+    environment:
+      - DATABASE_URL=postgres://postgres:10f29102@targeting-postgres:5432/targeting_db
+      - PORT=8003
+      - AUTH_SERVICE_URL=http://auth-service-main-auth-1:8001
+    depends_on:
+      - targeting-postgres
+    networks:
+      - shared
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  targeting-postgres:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=10f29102
+      - POSTGRES_DB=targeting_db
+    expose:
+      - 5432
+    volumes:
+      - targeting-postgres-data:/var/lib/postgresql/18/docker
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - shared
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  targeting-postgres-data:
+
+networks:
+  shared:
+    external: true
+    name: inter-project
