@@ -201,6 +201,7 @@ jobs:
           NEW_IMAGE: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ steps.update-setup.outputs.short-sha }}"
         working-directory: ${{ env.ARGO_DIR }}
         run: |
+          yq e -i 'select(.kind == "Deployment") .spec.template.spec.containers[0].image = env(NEW_IMAGE)' ${{ env.ARGO_APP }}.yaml 
           yq e -i '(.spec.template.spec.containers[0].image | select(. != null)) = env(NEW_IMAGE)' ${{ env.ARGO_APP }}.yaml 
   
       - name: Commit and Push Changes
