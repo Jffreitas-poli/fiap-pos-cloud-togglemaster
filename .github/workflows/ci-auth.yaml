@@ -125,15 +125,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21.x'
-
       - name: Run gosec security scanner
         uses: securego/gosec@master
         with:
-          args: ./${{ env.WORK_DIR }}/...
+          args: ./...
 
 
   # ============================================
