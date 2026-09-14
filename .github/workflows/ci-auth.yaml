@@ -48,12 +48,6 @@ jobs:
       - name: Test with the Go CLI
         run: go test
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.60
-          working-directory: ./${{ env.WORK_DIR }}
-
   
   # ============================================
   # JOB: Lint (Verificação de erros no código)
