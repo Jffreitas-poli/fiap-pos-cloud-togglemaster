@@ -126,11 +126,9 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run gosec security scanner
-        env:
-          GO111MODULE: on
         uses: securego/gosec@master
         with:
-          args: '-security high ./${{ env.WORK_DIR }}/...'
+          args: '-severity high ./${{ env.WORK_DIR }}/...'
 
 
   # ============================================
