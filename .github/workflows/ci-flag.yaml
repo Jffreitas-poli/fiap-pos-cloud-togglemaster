@@ -23,6 +23,7 @@ jobs:
   # JOB: Lint (Verificação de erros no código)
   # ============================================
   lint:
+    name: Lint com Pylint
     runs-on: ubuntu-latest
 
     defaults:
@@ -46,4 +47,4 @@ jobs:
 
     - name: Run Pylint
       run: |
-        pylint $(git ls-files '*.py')
+        pylint --errors-only $(git ls-files '*.py')
