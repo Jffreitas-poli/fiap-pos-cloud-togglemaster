@@ -200,9 +200,12 @@ jobs:
       - name: Update Kubernetes Manifest
         env:
           NEW_IMAGE: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ steps.update-setup.outputs.short-sha }}"
-        working-directory: ${{ env.ARGO_DIR }}
         run: |
-          yq e -i 'select(.kind == "Deployment") .spec.template.spec.containers[0].image = env(NEW_IMAGE)' ${{ env.ARGO_APP }}.yaml
+          yq e -i '.spec.template.spec.containers[0].image = env(NEW_IMAGE)' ${{ env.WORK_DIR }}/deployment.yaml
+
+      - name: Concat k8s files
+        run: |
+          yq eval-all '.' ${{ env.WORK_DIR }}/*.yaml > ${{ env.ARGO_DIR }}/${{ env.ARGO_APP }}.yml
   
       - name: Commit and Push Changes
         working-directory: ${{ env.ARGO_DIR }}
