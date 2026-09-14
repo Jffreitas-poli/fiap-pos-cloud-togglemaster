@@ -16,12 +16,35 @@ env:
 permissions:
   id-token: write   # Permissão para autenticar em prod
   contents: read
+
+defaults:
+  run:
+    working-directory: ./auth-service-main
+
 jobs:
   # ============================================
-  # JOB: Build e Deploy
+  # JOB: Build do código
+  # ============================================
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+      - name: Install dependencies
+        run: go get .
+      - name: Build
+        run: go build -v ./...
+      - name: Test with the Go CLI
+        run: go test
+  # ============================================
+  # JOB: Build da imagem e Deploy
   # ============================================
   deploy:
-    name: Build and Deploy
+    name: Build da imagem e Deploy
     runs-on: ubuntu-latest
 
     steps:
@@ -67,8 +90,8 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           SHORT_SHA: ${{ steps.build-setup.outputs.short-sha }}
         with:
-          context: ./auth-service-main
-          file: ./auth-service-main/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.SHORT_SHA }}
         
