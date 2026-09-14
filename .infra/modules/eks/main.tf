@@ -102,3 +102,7 @@ resource "aws_eks_access_policy_association" "team_view" {
     type = "cluster"
   }
 }
+
+data "aws_eks_cluster_auth" "auth" {
+  name = module.eks.cluster_name
+}

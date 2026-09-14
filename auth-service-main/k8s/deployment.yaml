@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: auth-container
-        image: 047719652987.dkr.ecr.us-east-2.amazonaws.com/tech-challenge/auth-image:latest
+        image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-auth:edfcef9a
         resources:
           requests:
             memory: "64Mi"

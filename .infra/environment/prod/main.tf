@@ -64,6 +64,16 @@ module "eks" {
   sg_rds             = module.sng.sg_id
 }
 
+module "argo" {
+  source                             = "../../modules/argo"
+  cluster_name                       = module.eks.cluster_name
+  cluster_endpoint                   = module.eks.cluster_endpoint
+  cluster_version                    = module.eks.cluster_version
+  cluster_token                      = module.eks.cluster_token
+  cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
+  oidc_provider_arn                  = module.eks.oidc_provider_arn
+}
+
 module "services" {
   source       = "../../modules/services"
   env          = var.env
