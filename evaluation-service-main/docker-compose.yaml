@@ -10,7 +10,7 @@ services:
       - REDIS_URL=redis://evaluation-redis:6379/0
       - FLAG_SERVICE_URL=http://flag-service-main-flag-1:8002
       - TARGETING_SERVICE_URL=http://targeting-service-main-targeting-1:8003
-      - SERVICE_API_KEY=tm_key_bdee1a5a70903b4ccb5f1e1e18b837f181f405ed1c4f3ee7e18db2fc7448057d
+      - SERVICE_API_KEY=<SERVICE_API_KEY>
       - AWS_SQS_URL=[https://sqs.us-east-1.amazonaws.com/123456789012/sua-fila](https://sqs.us-east-1.amazonaws.com/123456789012/sua-fila)
       - AWS_REGION=us-east-1
     depends_on:
