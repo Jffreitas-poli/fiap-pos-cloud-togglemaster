@@ -1,0 +1,208 @@
+# ============================================
+# WORKFLOW: Deploy da imagem para ECR
+# Automatiza build e deploy da aplicação
+# ============================================
+name: CI - evaluation
+
+on:
+#  push:
+#    branches: [main]
+  workflow_dispatch:  # Permite execução manual
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: tc-prod-ecr-evaluation
+  WORK_DIR: evaluation-service-main
+
+permissions:
+  id-token: write   # Permissão para autenticar em prod
+  contents: read
+
+jobs:
+  # ============================================
+  # JOB: Build do código
+  # ============================================
+  build:
+    name: Build do código
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./${{ env.WORK_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+
+      - name: Install dependencies
+        run: go get .
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test with the Go CLI
+        run: go test
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+          working-directory: ./${{ env.WORK_DIR }}
+
+  
+  # ============================================
+  # JOB: Lint (Verificação de erros no código)
+  # ============================================
+  lint:
+    name: Lint com golangci-lint
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./${{ env.WORK_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+
+      - name: Install dependencies
+        run: go get .
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+          working-directory: ./${{ env.WORK_DIR }}
+
+
+  # ============================================
+  # JOB: SCA (vulnerabilidades de dependencias)
+  # ============================================
+  sca:
+    name: SCA com Trivy
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./${{ env.WORK_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './${{ env.WORK_DIR }}'
+          format: 'table'
+          severity: 'CRITICAL'
+          exit-code: '1'
+
+
+  # ============================================
+  # JOB: SAST (vulnerabilidades no código)
+  # ============================================
+  sast:
+    name: SAST com gosec
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./${{ env.WORK_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21.x'
+
+      - name: Run Gosec Security Scanner
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          gosec -severity high ./...
+
+
+  # ============================================
+  # JOB: Build da imagem e Scan
+  # ============================================
+  image-scan:
+    name: Build da imagem e Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build local Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ env.WORK_DIR }}
+          file: ./${{ env.WORK_DIR }}/Dockerfile
+          load: true
+          tags: my-app:latest
+
+      - name: Run Trivy container image scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'my-app:latest'
+          scan-type: 'image'
+          format: 'table'
+          severity: 'CRITICAL'
+          exit-code: '1'
+
+
+  # ============================================
+  # JOB: Build da imagem e Scan
+  # ============================================
+  deploy:
+    name: Build da imagem e Deploy
+    runs-on: ubuntu-latest
+    needs: [build, lint, sca, sast, image-scan]
+
+    steps:
+      - name: Setup
+        id: build-setup
+        run: echo "short-sha=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.ROLE_GITHUB_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          SHORT_SHA: ${{ steps.build-setup.outputs.short-sha }}
+        with:
+          context: ./${{ env.WORK_DIR }}
+          file: ./${{ env.WORK_DIR }}/Dockerfile
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.SHORT_SHA }}
+        
