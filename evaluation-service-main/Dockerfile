@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.21 AS builder
+FROM golang:1.27 AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o evaluation-service .
 
 # Final stage
-FROM alpine:latest
+FROM scratch:latest
 
 WORKDIR /app
 
