@@ -12,6 +12,7 @@ crash.log
 crash.*.log
 # Arquivos de plano (podem conter segredos em texto puro)
 *.tfplan
+*.terraform.lock.hcl
 
 ### GitHub Actions (Falsos positivos / Ambientes Locais) ###
 # Se você usa ferramentas como o 'act' para rodar o GitHub Actions localmente:
