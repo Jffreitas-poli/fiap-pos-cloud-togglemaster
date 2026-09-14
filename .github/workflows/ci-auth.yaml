@@ -135,6 +135,9 @@ jobs:
 #          export PATH=$PATH:$(go env GOPATH)/bin
 #          go install github.com/securego/gosec/v2/cmd/gosec@latest
 #          gosec -severity high ./...
+
+      - name: Install dependencies
+        run: go mod tidy
       
       - name: Run govulncheck
         uses: golang/govulncheck-action@v1
