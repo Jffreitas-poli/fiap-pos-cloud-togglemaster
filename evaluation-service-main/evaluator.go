@@ -123,6 +123,7 @@ func (a *App) fetchFlag(flagName string) (*Flag, error) {
 	}
 
 	// Pass safeURL.String() or safeURL to http.NewRequest
+	// #nosec G704 -- URL is validated by ValidateAndSanitizeURL prior to request creation
 	req, err := http.NewRequest("GET", safeURL.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("URL validation failed: %w", err)
@@ -130,6 +131,7 @@ func (a *App) fetchFlag(flagName string) (*Flag, error) {
 
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 
+	// #nosec G704 -- URL is validated by ValidateAndSanitizeURL prior to request creation
 	resp, err := a.HttpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao chamar flag-service: %w", err)
@@ -154,9 +156,27 @@ func (a *App) fetchFlag(flagName string) (*Flag, error) {
 func (a *App) fetchRule(flagName string) (*TargetingRule, error) {
 	url := fmt.Sprintf("%s/rules/%s", a.TargetingServiceURL, flagName)
 	apiKey := os.Getenv("SERVICE_API_KEY") // Usa a mesma chave
-	req, _ := http.NewRequest("GET", url, nil)
+
+	// Define allowed hosts (or pass nil if scanning arbitrary public domains)
+	allowedDomains := []string{}
+
+	// Validate and sanitize the input URL string
+	safeURL, err := ValidateAndSanitizeURL(url, allowedDomains)
+	if err != nil {
+		// Handle invalid/unsafe URL error appropriately
+		return nil, fmt.Errorf("URL validation failed: %w", err)
+	}
+
+	// Pass safeURL.String() or safeURL to http.NewRequest
+	// #nosec G704 -- URL is validated by ValidateAndSanitizeURL prior to request creation
+	req, err := http.NewRequest("GET", safeURL.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("URL validation failed: %w", err)
+	}
+
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 
+	// #nosec G704 -- URL is validated by ValidateAndSanitizeURL prior to request creation
 	resp, err := a.HttpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao chamar targeting-service: %w", err)
