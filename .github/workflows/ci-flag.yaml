@@ -23,7 +23,7 @@ jobs:
   # JOB: Build do código
   # ============================================
   build:
-    name: SAST com bandit
+    name: Build do código
     runs-on: ubuntu-latest
 
     defaults:
