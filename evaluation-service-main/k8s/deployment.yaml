@@ -16,25 +16,25 @@ spec:
         app: evaluation
     spec:
       containers:
-      - name: evaluation-container
-        image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-evaluation:15281e91
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "20m"
-          limits:
-            memory: "128Mi"
-            cpu: "40m"
-        ports:
-        - containerPort: 8004
-        envFrom:
-        - configMapRef:
-            name: evaluation-configmap
-        - secretRef:
-            name: evaluation-secret
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8004
-          initialDelaySeconds: 10
-          periodSeconds: 10
+        - name: evaluation-container
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-evaluation:3d0489f9
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "20m"
+            limits:
+              memory: "128Mi"
+              cpu: "40m"
+          ports:
+            - containerPort: 8004
+          envFrom:
+            - configMapRef:
+                name: evaluation-configmap
+            - secretRef:
+                name: evaluation-secret
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 10
+            periodSeconds: 10
