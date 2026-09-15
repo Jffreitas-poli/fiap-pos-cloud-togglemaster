@@ -16,25 +16,25 @@ spec:
         app: targeting
     spec:
       containers:
-      - name: targeting-container
-        image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-targeting:c82675ff
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "20m"
-          limits:
-            memory: "128Mi"
-            cpu: "40m"
-        ports:
-        - containerPort: 8003
-        envFrom:
-        - configMapRef:
-            name: targeting-configmap
-        - secretRef:
-            name: targeting-secret
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8003
-          initialDelaySeconds: 10
-          periodSeconds: 10
+        - name: targeting-container
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-targeting:e0f8d520
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "20m"
+            limits:
+              memory: "128Mi"
+              cpu: "40m"
+          ports:
+            - containerPort: 8003
+          envFrom:
+            - configMapRef:
+                name: targeting-configmap
+            - secretRef:
+                name: targeting-secret
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 10
+            periodSeconds: 10
