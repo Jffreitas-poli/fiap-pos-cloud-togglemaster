@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/your-org/your-app-repo.git'
+    repoURL: 'https://github.com/Jffreitas-poli/fiap-pos-cloud-togglemaster.git'
     targetRevision: main
     path: 'targeting-service-main/k8s'
   destination:

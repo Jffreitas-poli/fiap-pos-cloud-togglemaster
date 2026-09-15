@@ -23,7 +23,7 @@ module "eks" {
   subnet_ids = var.subnet_ids
 
   eks_managed_node_groups = {
-    example = {
+    node = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
       ami_type       = "AL2023_x86_64_STANDARD"
       instance_types = ["t3.medium"]
@@ -105,4 +105,35 @@ resource "aws_eks_access_policy_association" "team_view" {
 
 data "aws_eks_cluster_auth" "auth" {
   name = module.eks.cluster_name
+}
+
+provider "helm" {
+  kubernetes = {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+    token                  = data.aws_eks_cluster_auth.auth.token
+  }
+}
+
+resource "helm_release" "ingress_nginx" {
+  name             = "ingress-nginx"
+  repository       = "https://kubernetes.github.io/ingress-nginx"
+  chart            = "ingress-nginx"
+  namespace        = "ingress-nginx"
+  create_namespace = true
+  version          = "4.10.0"
+
+  values = [
+    yamlencode({
+      controller = {
+        service = {
+          annotations = {
+            "service.beta.kubernetes.io/aws-load-balancer-type"            = "external"
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "instance"
+            "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
+          }
+        }
+      }
+    })
+  ]
 }
