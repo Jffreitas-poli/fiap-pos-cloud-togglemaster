@@ -9,10 +9,12 @@ on:
     branches: [main]
     paths:
       - 'targeting-service-main/**'
+      - '.github/workflows/ci-targeting.yaml'
   push:
     branches: [main]
     paths:
       - 'targeting-service-main/**'
+      - '.github/workflows/ci-targeting.yaml'
 
 env:
   AWS_REGION: us-east-1

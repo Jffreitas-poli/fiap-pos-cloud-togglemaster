@@ -9,10 +9,12 @@ on:
     branches: [main]
     paths:
       - 'evaluation-service-main/**'
+      - '.github/workflows/ci-evaluation.yaml'
   push:
     branches: [main]
     paths:
       - 'evaluation-service-main/**'
+      - '.github/workflows/ci-evaluation.yaml'
 
 env:
   AWS_REGION: us-east-1

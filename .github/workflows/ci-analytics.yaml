@@ -9,10 +9,12 @@ on:
     branches: [main]
     paths:
       - 'analytics-service-main/**'
+      - '.github/workflows/ci-analytics.yaml'
   push:
     branches: [main]
     paths:
       - 'analytics-service-main/**'
+      - '.github/workflows/ci-analytics.yaml'
 
 env:
   AWS_REGION: us-east-1

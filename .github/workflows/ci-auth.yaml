@@ -9,10 +9,12 @@ on:
     branches: [main]
     paths:
       - 'auth-service-main/**'
+      - '.github/workflows/ci-auth.yaml'
   push:
     branches: [main]
     paths:
       - 'auth-service-main/**'
+      - '.github/workflows/ci-auth.yaml'
 
 env:
   AWS_REGION: us-east-1

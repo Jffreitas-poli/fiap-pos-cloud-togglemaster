@@ -9,10 +9,12 @@ on:
     branches: [main]
     paths:
       - 'flag-service-main/**'
+      - '.github/workflows/ci-flag.yaml'
   push:
     branches: [main]
     paths:
       - 'flag-service-main/**'
+      - '.github/workflows/ci-flag.yaml'
 
 env:
   AWS_REGION: us-east-1
