@@ -34,10 +34,10 @@ module "rds" {
 
 # Redis
 module "redis" {
-  source             = "../../modules/redis"
-  env                = var.env
-  private_subnet_ids = module.vpc.private_subnet_ids
-  vpc_id             = module.vpc.vpc_id
+  source            = "../../modules/redis"
+  env               = var.env
+  public_subnet_ids = module.vpc.public_subnet_ids
+  vpc_id            = module.vpc.vpc_id
 }
 
 # SQS
@@ -72,6 +72,8 @@ module "argo" {
   cluster_token                      = module.eks.cluster_token
   cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
   oidc_provider_arn                  = module.eks.oidc_provider_arn
+
+  service_names = ["auth", "flag", "targeting", "evaluation", "analytics"]
 }
 
 module "services" {

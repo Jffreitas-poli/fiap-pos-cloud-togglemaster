@@ -39,37 +39,9 @@ provider "kubernetes" {
   token                  = var.cluster_token
 }
 
-resource "kubernetes_manifest" "argocd_application" {
-  manifest = {
-    apiVersion = "argoproj.io/v1alpha1"
-    kind       = "Application"
-    metadata = {
-      name      = "togglemaster"
-      namespace = "argocd"
-      finalizers = [
-        "resources-finalizer.argocd.argoproj.io"
-      ]
-    }
-    spec = {
-      project = "Togglemaster"
-      source = {
-        repoURL        = "https://github.com/Jffreitas-poli/fiap-pos-cloud-togglemaster.git"
-        targetRevision = "main"
-        path           = ".kubernetes/overlays/production"
-      }
-      destination = {
-        server    = "https://kubernetes.default.svc"
-        namespace = "toggle"
-      }
-      syncPolicy = {
-        automated = {
-          prune    = true
-          selfHeal = true
-        }
-        syncOptions = [
-          "CreateNamespace=true"
-        ]
-      }
-    }
-  }
+module "manifests" {
+  count = length(var.service_names)
+
+  source       = "./manifest"
+  service_name = var.service_names[count.index]
 }

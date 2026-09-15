@@ -16,25 +16,25 @@ spec:
         app: flag
     spec:
       containers:
-      - name: flag-container
-        image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-flag:6fab0dd6
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "20m"
-          limits:
-            memory: "128Mi"
-            cpu: "40m"
-        ports:
-        - containerPort: 8002
-        envFrom:
-        - configMapRef:
-            name: flag-configmap
-        - secretRef:
-            name: flag-secret
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8002
-          initialDelaySeconds: 10
-          periodSeconds: 10
+        - name: flag-container
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-flag:60e1d372
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "20m"
+            limits:
+              memory: "128Mi"
+              cpu: "40m"
+          ports:
+            - containerPort: 8002
+          envFrom:
+            - configMapRef:
+                name: flag-configmap
+            - secretRef:
+                name: flag-secret
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 10
+            periodSeconds: 10

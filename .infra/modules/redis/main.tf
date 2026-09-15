@@ -2,7 +2,7 @@
 resource "aws_elasticache_subnet_group" "sng_redis" {
   name        = "tc-${var.env}-sng-redis"
   description = "Redis access"
-  subnet_ids  = var.private_subnet_ids
+  subnet_ids  = var.public_subnet_ids
   tags        = { Name = "tc-${var.env}-sng-redis" }
 }
 
