@@ -49,7 +49,7 @@ variable "private_subnets" {
 
 variable "rds_names" {
   type = list(string)
-  default = ["auth", "flag", "targeting"]
+  default = ["auth", "flags", "targeting"]
 }
 variable "rds_passs" {
   type      = list(string)
