@@ -215,5 +215,9 @@ jobs:
             echo "No manifest changes to commit."
           else
             git commit -m "ci: update container image to ${{ steps.update-setup.outputs.short-sha }} [skip ci]"
-            git push
+            for i in {1..5}; do
+              git pull --rebase origin ${{ github.ref_name }} && git push origin ${{ github.ref_name }} && break
+              echo "Push collision detected. Retrying ($i/5)..."
+              sleep $((RANDOM % 5 + 1))
+            done
           fi
