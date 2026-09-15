@@ -24,7 +24,11 @@ type CreateKeyResponse struct {
 // healthHandler é um simples endpoint de verificação de saúde
 func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
+		log.Printf("Falha no json encode da mensagem de retorno")
+		http.Error(w, "Falha na criação da mensagem de retorno do healthcheck", http.StatusUnauthorized)
+		return
+	}
 }
 
 // validateKeyHandler verifica se uma chave de API (enviada via Header) é válida
