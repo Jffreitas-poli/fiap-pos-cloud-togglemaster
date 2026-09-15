@@ -49,7 +49,7 @@ module "evaluation_identity" {
   source            = "./pod_identity"
   env               = var.env
   cluster_name      = var.cluster_name
-  service_namespace = "evaluation"
+  service_namespace = "toggle"
   service_account   = "evaluation-service"
 
   policy_json = jsonencode({
@@ -80,7 +80,7 @@ module "analytics_identity" {
   source            = "./pod_identity"
   env               = var.env
   cluster_name      = var.cluster_name
-  service_namespace = "analytics"
+  service_namespace = "toggle"
   service_account   = "analytics-service"
 
   policy_json = jsonencode({
