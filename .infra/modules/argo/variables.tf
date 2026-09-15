@@ -16,3 +16,7 @@ variable "cluster_certificate_authority_data" {
 variable "oidc_provider_arn" {
   type = string
 }
+
+variable "service_names" {
+  type = list(string)
+}

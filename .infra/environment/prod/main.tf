@@ -72,6 +72,8 @@ module "argo" {
   cluster_token                      = module.eks.cluster_token
   cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
   oidc_provider_arn                  = module.eks.oidc_provider_arn
+
+  service_names = [ "auth", "flag", "targeting", "evaluation", "analytics" ]
 }
 
 module "services" {
