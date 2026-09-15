@@ -44,6 +44,7 @@ jobs:
           directory: ${{ env.WORK_DIR }}
           framework: terraform
           soft_fail: false
+          quiet: true
           output_format: cli,sarif
           output_file_path: console,results.sarif
 
