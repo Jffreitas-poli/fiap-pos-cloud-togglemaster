@@ -1,0 +1,149 @@
+# ============================================
+# WORKFLOW: Execução de arquivos terraform
+# ============================================
+name: TF-apply
+
+on:
+  workflow_dispatch:  # Permite execução manual
+    inputs:
+      branch:
+        required: true
+        default: 'main'
+        type: choice
+        options:
+        - main
+
+env:
+  AWS_REGION: us-east-1
+  WORK_DIR: .infra/environment/prod
+  ARGO_DIR: .k8s/argocd
+
+permissions:
+  id-token: write   # Permissão para autenticar em prod
+  contents: read
+
+jobs:
+  # ============================================
+  # JOB: Scan do terraform usando Checkov
+  # ============================================
+  scan:
+    name: 'Scan do terraform com Checkov'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # Required to upload SARIF results to GitHub Security tab
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        id: checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ${{ env.WORK_DIR }}
+          framework: terraform
+          soft_fail: false
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+
+      - name: Upload SARIF file to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() 
+        with:
+          sarif_file: results.sarif
+
+
+  # ============================================
+  # JOB: Execução do terraform
+  # ============================================
+  terraform:
+    name: 'Terraform Plan e Apply'
+    runs-on: ubuntu-latest
+    needs: scan
+    outputs:
+      cluster-name: ${{ steps.get-cluster-name.outputs.cluster-name }}
+    
+    defaults:
+      run:
+        working-directory: ${{ env.WORK_DIR }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.ROLE_GITHUB_ARN }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.9.0
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Plan
+      env:
+        TF_VAR_env: "prod"
+        TF_VAR_rds_passs: ${{ secrets.DB_PASSWORD }}
+        TF_VAR_eks_developer_arns: ${{ secrets.DEVELOPER_ARNS }}
+        TF_VAR_git_repo_claim_prefix: ${{ secrets.GIT_REPO_CLAIM }}
+      run: terraform plan -no-color -out=tfplan
+
+    - name: Terraform Apply
+      env:
+        TF_VAR_env: "prod"
+        TF_VAR_rds_passs: ${{ secrets.DB_PASSWORD }}
+        TF_VAR_eks_developer_arns: ${{ secrets.DEVELOPER_ARNS }}
+        TF_VAR_git_repo_claim_prefix: ${{ secrets.GIT_REPO_CLAIM }}
+      run: terraform apply -input=false tfplan
+
+    - name: Output do nome do cluster
+      id: get-cluster-name
+      run: |
+        CLUSTER_NAME=$(terraform output -raw eks_cluster_name)
+        echo "cluster-name=${CLUSTER_NAME}" >> $GITHUB_OUTPUT
+
+
+  # ============================================
+  # JOB: Atualização do argocd
+  # ============================================
+  argo:
+    name: 'Deploy Argocd'
+    runs-on: ubuntu-latest
+    needs: terraform
+    
+    defaults:
+      run:
+        working-directory: ${{ env.ARGO_DIR }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.ROLE_GITHUB_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.34.0'
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ needs.terraform.outputs.cluster-name }}
+
+      - name: Apply Kubernetes Manifests
+        run: |
+          kubectl apply -f .
+
+      - name: Verify Deployment
+        run: |
+          kubectl rollout status Application -n argocd --timeout=20s
