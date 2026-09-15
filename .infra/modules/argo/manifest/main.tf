@@ -14,7 +14,7 @@ resource "kubernetes_manifest" "auth-service" {
       source = {
         repoURL        = "https://github.com/Jffreitas-poli/fiap-pos-cloud-togglemaster.git"
         targetRevision = "main"
-        path           = ".k8s/${var.service_name}-service"
+        path           = "${var.service_name}-service-main/k8s"
       }
       destination = {
         server    = "https://kubernetes.default.svc"
