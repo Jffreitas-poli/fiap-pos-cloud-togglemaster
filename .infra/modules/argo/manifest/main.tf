@@ -1,4 +1,4 @@
-resource "kubernetes_manifest" "auth-service" {
+resource "kubernetes_manifest" "argo" {
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
@@ -10,7 +10,7 @@ resource "kubernetes_manifest" "auth-service" {
       ]
     }
     spec = {
-      project = "Togglemaster"
+      project = "default"
       source = {
         repoURL        = "https://github.com/Jffreitas-poli/fiap-pos-cloud-togglemaster.git"
         targetRevision = "main"

@@ -42,6 +42,6 @@ provider "kubernetes" {
 module "manifests" {
   count = length(var.service_names)
 
-  source = "./manifest"
+  source       = "./manifest"
   service_name = var.service_names[count.index]
 }
