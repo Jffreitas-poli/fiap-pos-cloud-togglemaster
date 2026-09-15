@@ -16,25 +16,25 @@ spec:
         app: auth
     spec:
       containers:
-      - name: auth-container
-        image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-auth:edfcef9a
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "20m"
-          limits:
-            memory: "128Mi"
-            cpu: "40m"
-        ports:
-        - containerPort: 8001
-        envFrom:
-        - configMapRef:
-            name: auth-configmap
-        - secretRef:
-            name: auth-secret
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8001
-          initialDelaySeconds: 10
-          periodSeconds: 10
+        - name: auth-container
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-auth:c1d0cd98
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "20m"
+            limits:
+              memory: "128Mi"
+              cpu: "40m"
+          ports:
+            - containerPort: 8001
+          envFrom:
+            - configMapRef:
+                name: auth-configmap
+            - secretRef:
+                name: auth-secret
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 10
