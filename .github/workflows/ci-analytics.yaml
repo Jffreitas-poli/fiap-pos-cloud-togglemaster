@@ -116,7 +116,7 @@ jobs:
   # ============================================
   # JOB: Scan do terraform usando Checkov
   # ============================================
-  scan:
+  checkov:
     name: 'Scan do terraform com Checkov'
     runs-on: ubuntu-latest
     permissions:
@@ -177,7 +177,7 @@ jobs:
     if: github.event_name != 'push'
     name: Build da imagem e Deploy
     runs-on: ubuntu-latest
-    needs: [lint, sca, sast, image-scan]
+    needs: [lint, sca, sast, checkov, image-scan]
 
     steps:
       - name: Setup
