@@ -173,3 +173,47 @@ jobs:
           file: ./${{ env.WORK_DIR }}/Dockerfile
           push: true
           tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.SHORT_SHA }}
+
+
+  # ============================================
+  # JOB: Atualizando git com nova imagem
+  # ============================================
+  update-manifest:
+    name: Atualizando git com nova imagem
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Setup
+        id: update-setup
+        run: echo "short-sha=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_OUTPUT
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+  
+      - name: Update Kubernetes Manifest
+        working-directory: ${{ env.WORK_DIR }}/k8s
+        env:
+          NEW_IMAGE: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ steps.update-setup.outputs.short-sha }}"
+        run: |
+          yq e -i '.spec.template.spec.containers[0].image = env(NEW_IMAGE)' deployment.yaml
+  
+      - name: Commit and Push Changes
+        working-directory: ${{ env.WORK_DIR }}/k8s
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add deployment.yaml
+          
+          # Only commit if changes were detected
+          if git diff --staged --quiet; then
+            echo "No manifest changes to commit."
+          else
+            git commit -m "ci: update container image to ${{ steps.update-setup.outputs.short-sha }} [skip ci]"
+            git push
+          fi
