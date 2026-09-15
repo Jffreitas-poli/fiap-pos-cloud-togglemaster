@@ -13,7 +13,7 @@ spec:
     path: 'targeting-service-main/k8s'
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: targeting
+    namespace: toggle
   syncPolicy:
     automated:
       prune: true

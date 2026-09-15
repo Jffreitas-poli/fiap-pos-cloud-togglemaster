@@ -13,7 +13,7 @@ spec:
     path: 'auth-service-main/k8s'
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: auth
+    namespace: toggle
   syncPolicy:
     automated:
       prune: true

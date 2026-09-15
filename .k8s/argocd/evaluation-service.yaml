@@ -13,7 +13,7 @@ spec:
     path: 'evaluation-service-main/k8s'
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: evaluation
+    namespace: toggle
   syncPolicy:
     automated:
       prune: true
