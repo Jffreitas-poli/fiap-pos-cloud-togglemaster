@@ -32,16 +32,3 @@ module "eks_blueprints_addons" {
     ]
   }
 }
-
-provider "kubernetes" {
-  host                   = var.cluster_endpoint
-  cluster_ca_certificate = base64decode(var.cluster_certificate_authority_data)
-  token                  = var.cluster_token
-}
-
-module "manifests" {
-  count = length(var.service_names)
-
-  source       = "./manifest"
-  service_name = var.service_names[count.index]
-}
