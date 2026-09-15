@@ -16,23 +16,23 @@ spec:
         app: analytics
     spec:
       containers:
-      - name: analytics-container
-        image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-analytics:c82675ff
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "20m"
-          limits:
-            memory: "128Mi"
-            cpu: "40m"
-        ports:
-        - containerPort: 8005
-        envFrom:
-        - configMapRef:
-            name: analytics-configmap
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8005
-          initialDelaySeconds: 10
-          periodSeconds: 10
+        - name: analytics-container
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-analytics:b38692d5
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "20m"
+            limits:
+              memory: "128Mi"
+              cpu: "40m"
+          ports:
+            - containerPort: 8005
+          envFrom:
+            - configMapRef:
+                name: analytics-configmap
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8005
+            initialDelaySeconds: 10
+            periodSeconds: 10
