@@ -16,4 +16,5 @@ require (
 	github.com/onsi/gomega v1.27.6 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
+	google.golang.org/grpc v1.78.0
 )
