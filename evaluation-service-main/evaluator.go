@@ -168,6 +168,7 @@ func (a *App) fetchRule(flagName string) (*TargetingRule, error) {
 	}
 
 	// Pass safeURL.String() or safeURL to http.NewRequest
+	// #nosec G704 -- URL is validated by ValidateAndSanitizeURL prior to request creation
 	req, err := http.NewRequest("GET", safeURL.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("URL validation failed: %w", err)
