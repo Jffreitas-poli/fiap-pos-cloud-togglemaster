@@ -1,23 +1,27 @@
 # Build stage
-FROM python:3.11-slim AS builder
+FROM python:3.11-alpine AS builder
 
 WORKDIR /app
 
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Install temporary build dependencies needed to compile psycopg2
+RUN apk add --no-cache gcc musl-dev postgresql-dev python3-dev
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies to an isolated folder
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 
-# Final stage
-FROM python:3.11-slim
+# Stage 2: Final runtime stage (clean and secure)
+FROM python:3.11-alpine
 
 WORKDIR /app
 
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# Copy the pre-compiled Python environments from the builder stage
+COPY --from=builder /install /usr/local
+
+# Install ONLY the lightweight runtime C-dependency required by psycopg2
+RUN apk add --no-cache libpq
 
 COPY app.py .
 
