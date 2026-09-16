@@ -20,7 +20,7 @@ app = Flask(__name__)
 
 # --- Configuração ---
 DATABASE_URL = os.getenv("DATABASE_URL")
-AUTH_SERVICE_URL = os.getenv("AUTH_SERVICE_URL")
+AUTH_SERVICE_URL = os.getnv("AUTH_SERVICE_URL")
 
 if not DATABASE_URL or not AUTH_SERVICE_URL:
     log.critical("Erro: DATABASE_URL e AUTH_SERVICE_URL devem ser definidos.")
