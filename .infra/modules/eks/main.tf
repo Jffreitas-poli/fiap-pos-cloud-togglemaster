@@ -43,7 +43,8 @@ module "eks" {
     vpc-cni = {
       before_compute = true
     }
-    metrics-server = {}
+    metrics-server     = {}
+    aws-ebs-csi-driver = {}
   }
 
   tags = {
@@ -136,4 +137,25 @@ resource "helm_release" "ingress_nginx" {
       }
     })
   ]
+}
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.auth.token
+}
+
+resource "kubernetes_annotations" "gp2_default" {
+  annotations = {
+    "storageclass.kubernetes.io/is-default-class" : "true"
+  }
+  api_version = "storage.k8s.io/v1"
+  kind        = "StorageClass"
+  metadata {
+    name = "gp2"
+  }
+
+  force = true
+
+  depends_on = [module.eks]
 }
