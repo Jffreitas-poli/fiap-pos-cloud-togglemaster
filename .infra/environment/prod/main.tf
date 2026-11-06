@@ -74,12 +74,6 @@ module "argo" {
   oidc_provider_arn                  = module.eks.oidc_provider_arn
 }
 
-module "services" {
-  source       = "../../modules/services"
-  env          = var.env
-  cluster_name = module.eks.cluster_name
-}
-
 #Github OIDC
 module "oidc" {
   source                = "../../modules/oidc"
@@ -94,4 +88,27 @@ module "ecr" {
   source = "../../modules/ecr"
   env    = var.env
   name   = var.ecr_names[count.index]
+}
+
+# S3
+module "s3" {
+  count = length(var.s3_names)
+
+  source = "../../modules/s3"
+  env    = var.env
+  name   = var.s3_names[count.index]
+}
+
+#EKS Services
+module "services" {
+  source                 = "../../modules/services"
+  env                    = var.env
+  cluster_name           = module.eks.cluster_name
+  cluster_endpoint       = module.eks.cluster_endpoint
+  cluster_ca_certificate = module.eks.cluster_certificate_authority_data
+  cluster_token          = module.eks.cluster_token
+  oidc_provider          = module.eks.oidc_provider
+  oidc_provider_arn      = module.eks.oidc_provider_arn
+  loki_chunk_bucket_name = module.s3[0].bucket_name
+  loki_ruler_bucket_name = module.s3[1].bucket_name
 }
