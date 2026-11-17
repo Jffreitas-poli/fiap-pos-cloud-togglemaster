@@ -6,8 +6,8 @@ metadata:
 data:
   PORT: "8004"
   REDIS_URL: "redis://tc-prod-redis.golzvh.0001.use1.cache.amazonaws.com:6379/0"
-  FLAG_SERVICE_URL: "https://a5be0f4fe41a0405eb66fc813dab078f-46f4af11f3765017.elb.us-east-1.amazonaws.com/flag"
-  TARGETING_SERVICE_URL: "https://a5be0f4fe41a0405eb66fc813dab078f-46f4af11f3765017.elb.us-east-1.amazonaws.com/targeting"
+  FLAG_SERVICE_URL: "http://flag-service.toggle.svc.cluster.local:8002"
+  TARGETING_SERVICE_URL: "http://targeting-service.toggle.svc.cluster.local:8003"
   AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/047719652987/tc-prod-sqs"
   AWS_REGION: "us-east-1"
   OTEL_SERVICE_NAME: "evaluation-service"

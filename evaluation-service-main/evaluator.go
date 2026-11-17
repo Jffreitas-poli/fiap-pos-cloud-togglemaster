@@ -303,17 +303,6 @@ func ValidateAndSanitizeURL(rawURL string, allowedHosts []string) (*url.URL, err
 		if ip.IsLoopback() || ip.IsPrivate() || ip.IsUnspecified() || ip.IsLinkLocalUnicast() {
 			return nil, fmt.Errorf("access to private or internal IP %s is forbidden", hostname)
 		}
-	} else {
-		// Resolve hostname to IP to prevent DNS rebinding or localhost resolutions
-		ips, err := net.LookupIP(hostname)
-		if err != nil {
-			return nil, fmt.Errorf("failed to resolve host %s: %w", hostname, err)
-		}
-		for _, resolvedIP := range ips {
-			if resolvedIP.IsLoopback() || resolvedIP.IsPrivate() || resolvedIP.IsUnspecified() || resolvedIP.IsLinkLocalUnicast() {
-				return nil, fmt.Errorf("hostname %s resolves to internal IP %s", hostname, resolvedIP.String())
-			}
-		}
 	}
 
 	return parsedURL, nil
