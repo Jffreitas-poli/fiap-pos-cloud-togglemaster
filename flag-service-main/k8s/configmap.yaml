@@ -10,6 +10,7 @@ data:
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4318"
   OTEL_EXPORTER_OTLP_INSECURE: "true"
   OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "http/json"
   OTEL_LOGS_EXPORTER: "otlp"
   OTEL_METRICS_EXPORTER: "otlp"
   OTEL_TRACES_EXPORTER: "otlp"
