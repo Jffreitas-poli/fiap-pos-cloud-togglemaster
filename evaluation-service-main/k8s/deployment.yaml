@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: evaluation-container
-          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-evaluation:0032ef59
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-evaluation:b0e5129f
           resources:
             requests:
               memory: "64Mi"
