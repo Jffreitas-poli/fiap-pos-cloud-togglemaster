@@ -34,7 +34,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer otelShutdown(context.Background())
+	defer func() {
+		if cerr := otelShutdown(context.Background()); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	// Bridge standard slog to OpenTelemetry Logs
 	logger := otelslog.NewLogger("auth-service")
@@ -61,7 +65,11 @@ func main() {
 	if err != nil {
 		slog.Error("Não foi possível conectar ao banco de dados.", "Erro", err.Error())
 	}
-	defer db.Close()
+	defer func() {
+		if cerr := db.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	app := &App{
 		DB:        db,

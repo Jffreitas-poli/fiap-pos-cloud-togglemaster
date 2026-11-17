@@ -43,7 +43,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer otelShutdown(context.Background())
+	defer func() {
+		if cerr := otelShutdown(context.Background()); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	// Bridge standard slog to OpenTelemetry Logs
 	logger := otelslog.NewLogger("evaluation-service")
