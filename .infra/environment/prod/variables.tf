@@ -3,7 +3,7 @@ variable "env" {
 }
 
 variable "vpc_cidr" {
-  type = string
+  type    = string
   default = "10.0.0.0/16"
 }
 variable "public_subnets" {
@@ -30,7 +30,7 @@ variable "private_subnets" {
   type = map(object({
     az   = string
     cidr = string
-  })) 
+  }))
   default = {
     private_1 = {
       az   = "us-east-1a"
@@ -48,7 +48,7 @@ variable "private_subnets" {
 }
 
 variable "rds_names" {
-  type = list(string)
+  type    = list(string)
   default = ["auth", "flags", "targeting"]
 }
 variable "rds_passs" {
@@ -69,6 +69,11 @@ variable "git_repo_claim_prefix" {
 }
 
 variable "ecr_names" {
-  type = list(string)
+  type    = list(string)
   default = ["auth", "flag", "targeting", "evaluation", "analytics"]
+}
+
+variable "s3_names" {
+  type    = list(string)
+  default = ["loki-chunks", "loki-ruler"]
 }

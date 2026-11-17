@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
+
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 )
 
 type EvaluationResponse struct {
@@ -13,16 +15,24 @@ type EvaluationResponse struct {
 }
 
 func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
+	// Bridge standard slog to OpenTelemetry Logs
+	logger := otelslog.NewLogger("evaluation-service")
+	slog.SetDefault(logger)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
-		log.Printf("Falha no json encode da mensagem de retorno")
+		slog.Log(r.Context(), slog.LevelError, "Falha no json encode da mensagem de retorno")
 		http.Error(w, "Falha na criação da mensagem de retorno do healthcheck", http.StatusUnauthorized)
 		return
 	}
 }
 
 func (a *App) evaluationHandler(w http.ResponseWriter, r *http.Request) {
+	// Bridge standard slog to OpenTelemetry Logs
+	logger := otelslog.NewLogger("evaluation-service")
+	slog.SetDefault(logger)
+
 	w.Header().Set("Content-Type", "application/json")
 
 	// 1. Parsear os query parameters
@@ -42,7 +52,7 @@ func (a *App) evaluationHandler(w http.ResponseWriter, r *http.Request) {
 			result = false
 		} else {
 			// Outros erros (serviços offline, etc)
-			log.Printf("Erro ao avaliar flag '%s': %v", flagName, err)
+			slog.Log(r.Context(), slog.LevelError, "Erro ao avaliar flag.", "Flag", flagName, "Erro", err.Error())
 			http.Error(w, `{"error": "Erro interno ao avaliar a flag"}`, http.StatusBadGateway)
 			return
 		}
@@ -59,7 +69,7 @@ func (a *App) evaluationHandler(w http.ResponseWriter, r *http.Request) {
 		UserID:   userID,
 		Result:   result,
 	}); err != nil {
-		log.Printf("Falha no json encode da mensagem de retorno")
+		slog.Log(r.Context(), slog.LevelError, "Falha no json encode da mensagem de retorno")
 		http.Error(w, "Falha na criação da mensagem de retorno da avaliação", http.StatusUnauthorized)
 		return
 	}

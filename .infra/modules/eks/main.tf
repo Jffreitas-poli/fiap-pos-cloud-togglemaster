@@ -26,11 +26,11 @@ module "eks" {
     node = {
       # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
       ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["t3.medium"]
+      instance_types = ["t3.large"]
 
-      min_size     = 2
+      min_size     = 3
       max_size     = 5
-      desired_size = 2
+      desired_size = 3
     }
   }
 
@@ -43,7 +43,11 @@ module "eks" {
     vpc-cni = {
       before_compute = true
     }
-    metrics-server = {}
+    metrics-server     = {}
+    aws-ebs-csi-driver = {
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
+    }
   }
 
   tags = {
@@ -136,4 +140,25 @@ resource "helm_release" "ingress_nginx" {
       }
     })
   ]
+}
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.auth.token
+}
+
+resource "kubernetes_annotations" "gp2_default" {
+  annotations = {
+    "storageclass.kubernetes.io/is-default-class" : "true"
+  }
+  api_version = "storage.k8s.io/v1"
+  kind        = "StorageClass"
+  metadata {
+    name = "gp2"
+  }
+
+  force = true
+
+  depends_on = [module.eks]
 }

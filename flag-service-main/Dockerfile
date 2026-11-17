@@ -9,7 +9,13 @@ RUN apk add --no-cache gcc musl-dev postgresql-dev python3-dev
 COPY requirements.txt .
 
 # Install dependencies to an isolated folder
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt \
+    opentelemetry-distro \
+    opentelemetry-exporter-otlp
+
+RUN PYTHONPATH=/install/lib/python3.11/site-packages \
+    PIP_PREFIX=/install \
+    /install/bin/opentelemetry-bootstrap -a install
 
 
 # Stage 2: Final runtime stage (clean and secure)
@@ -25,4 +31,4 @@ RUN apk add --no-cache libpq
 
 COPY app.py .
 
-CMD ["python", "app.py"]
+CMD ["opentelemetry-instrument", "python", "app.py"]

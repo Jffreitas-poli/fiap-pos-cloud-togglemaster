@@ -6,3 +6,10 @@ metadata:
 data:
   PORT: "8003"
   AUTH_SERVICE_URL: "http://auth-service.auth.svc.cluster.local:8001"
+  OTEL_SERVICE_NAME: "targeting-service"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.observability.svc.cluster.local:4318"
+  OTEL_EXPORTER_OTLP_INSECURE: "true"
+  OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: "true"
+  OTEL_LOGS_EXPORTER: "otlp"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"

@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"sync"
@@ -16,6 +16,8 @@ import (
 	"net"
 	"net/url"
 	"strings"
+
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 )
 
 const (
@@ -37,6 +39,10 @@ func (a *App) getDecision(userID, flagName string) (bool, error) {
 
 // getCombinedFlagInfo busca os dados no Redis, com fallback para os microsserviços
 func (a *App) getCombinedFlagInfo(flagName string) (*CombinedFlagInfo, error) {
+	// Bridge standard slog to OpenTelemetry Logs
+	logger := otelslog.NewLogger("auth-service")
+	slog.SetDefault(logger)
+
 	cacheKey := fmt.Sprintf("flag_info:%s", flagName)
 
 	// 1. Tentar buscar do Cache (Redis)
@@ -45,14 +51,14 @@ func (a *App) getCombinedFlagInfo(flagName string) (*CombinedFlagInfo, error) {
 		// Cache HIT
 		var info CombinedFlagInfo
 		if err := json.Unmarshal([]byte(val), &info); err == nil {
-			log.Printf("Cache HIT para flag '%s'", flagName)
+			slog.Info("Cache HIT para flag", "Flag", flagName)
 			return &info, nil
 		}
 		// Se o unmarshal falhar, trata como cache miss
-		log.Printf("Erro ao desserializar cache para flag '%s': %v", flagName, err)
+		slog.Error("Erro ao desserializar cache para flag.", "Flag", flagName, "Erro", err.Error())
 	}
 
-	log.Printf("Cache MISS para flag '%s'", flagName)
+	slog.Info("Cache MISS para flag.", "Flag", flagName)
 	// 2. Cache MISS - Buscar dos serviços
 	info, err := a.fetchFromServices(flagName)
 	if err != nil {
@@ -63,7 +69,7 @@ func (a *App) getCombinedFlagInfo(flagName string) (*CombinedFlagInfo, error) {
 	jsonData, err := json.Marshal(info)
 	if err == nil {
 		if err := a.RedisClient.Set(ctx, cacheKey, jsonData, CACHE_TTL).Err(); err != nil {
-			log.Printf("Falha na gravação do cache redis")
+			slog.Error("Falha na gravação do cache redis")
 		}
 	}
 
@@ -78,6 +84,10 @@ func (a *App) fetchFromServices(flagName string) (*CombinedFlagInfo, error) {
 	var flagInfo *Flag
 	var ruleInfo *TargetingRule
 	var flagErr, ruleErr error
+
+	// Bridge standard slog to OpenTelemetry Logs
+	logger := otelslog.NewLogger("auth-service")
+	slog.SetDefault(logger)
 
 	// Goroutine 1: Buscar do flag-service
 	go func() {
@@ -97,7 +107,7 @@ func (a *App) fetchFromServices(flagName string) (*CombinedFlagInfo, error) {
 		return nil, flagErr
 	}
 	if ruleErr != nil {
-		log.Printf("Aviso: Nenhuma regra de segmentação encontrada para '%s'. Usando padrão.", flagName)
+		slog.Info("Aviso: Nenhuma regra de segmentação encontrada para flag. Usando padrão.", "Flag", flagName)
 	}
 
 	return &CombinedFlagInfo{
@@ -136,7 +146,11 @@ func (a *App) fetchFlag(flagName string) (*Flag, error) {
 	if err != nil {
 		return nil, fmt.Errorf("erro ao chamar flag-service: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, &NotFoundError{flagName}
@@ -181,7 +195,11 @@ func (a *App) fetchRule(flagName string) (*TargetingRule, error) {
 	if err != nil {
 		return nil, fmt.Errorf("erro ao chamar targeting-service: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, &NotFoundError{flagName} // Não é um erro fatal
@@ -200,6 +218,10 @@ func (a *App) fetchRule(flagName string) (*TargetingRule, error) {
 
 // runEvaluationLogic é onde a decisão é tomada
 func (a *App) runEvaluationLogic(info *CombinedFlagInfo, userID string) bool {
+	// Bridge standard slog to OpenTelemetry Logs
+	logger := otelslog.NewLogger("auth-service")
+	slog.SetDefault(logger)
+
 	if info.Flag == nil || !info.Flag.IsEnabled {
 		return false
 	}
@@ -214,7 +236,7 @@ func (a *App) runEvaluationLogic(info *CombinedFlagInfo, userID string) bool {
 		// Converte o 'value' (que é interface{}) para float64
 		percentage, ok := rule.Value.(float64)
 		if !ok {
-			log.Printf("Erro: valor da regra de porcentagem não é um número para a flag '%s'", info.Flag.Name)
+			slog.Error("Erro: valor da regra de porcentagem não é um número para a flag.", "Flag", info.Flag.Name)
 			return false
 		}
 
