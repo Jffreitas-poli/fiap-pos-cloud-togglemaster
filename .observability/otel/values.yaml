@@ -25,7 +25,7 @@ config:
   exporters:
     # 1. Ship Logs to Loki's native OTLP endpoint
     otlphttp/loki:
-      endpoint: http://loki-gateway.loki.svc.cluster.local/otlp
+      endpoint: http://loki-gateway.loki.svc.cluster.local:80/otlp
       headers: 
         X-Scope-OrgID: "toggle"
       tls:
