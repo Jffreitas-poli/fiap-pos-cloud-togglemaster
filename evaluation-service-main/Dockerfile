@@ -1,8 +1,6 @@
 # Build stage
 FROM golang:1.27 AS builder
 
-RUN apk --no-cache add ca-certificates
-
 WORKDIR /app
 
 COPY . .
