@@ -19,6 +19,8 @@ func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
 	logger := otelslog.NewLogger("evaluation-service")
 	slog.SetDefault(logger)
 
+	slog.Log(r.Context(), slog.LevelInfo, "Health success")
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {

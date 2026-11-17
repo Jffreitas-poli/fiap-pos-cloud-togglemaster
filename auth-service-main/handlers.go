@@ -27,7 +27,7 @@ func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
 	logger := otelslog.NewLogger("auth-service")
 	slog.SetDefault(logger)
 
-	slog.Log(r.Context(), slog.LevelInfo, "Falha no json encode da mensagem de retorno")
+	slog.Log(r.Context(), slog.LevelInfo, "Health success")
 
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {

@@ -55,7 +55,7 @@ func (a *App) getCombinedFlagInfo(flagName string) (*CombinedFlagInfo, error) {
 			return &info, nil
 		}
 		// Se o unmarshal falhar, trata como cache miss
-		slog.Error("Erro ao desserializar cache para flag.", "Flag", flagName, "Erro", err.Error())
+		slog.Error("Erro ao desserializar cache para flag.", "Flag", flagName, "Erro", "Cache miss")
 	}
 
 	slog.Info("Cache MISS para flag.", "Flag", flagName)
