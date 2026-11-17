@@ -27,7 +27,7 @@ config:
     otlphttp/loki:
       endpoint: http://loki-gateway.loki.svc.cluster.local/otlp
       headers: 
-        X-Scope-OrgID: "togglekubectl logs -n <otel-namespace> deploy/<otel-collector> --tail=30 | grep -i -E "error|401|loki|otlp""
+        X-Scope-OrgID: "toggle"
       tls:
         insecure: true
 
