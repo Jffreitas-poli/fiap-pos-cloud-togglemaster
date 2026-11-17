@@ -18,7 +18,7 @@ spec:
       serviceAccountName: targeting-service
       containers:
         - name: targeting-container
-          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-targeting:b0e5129f
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-targeting:5376a92e
           resources:
             requests:
               memory: "64Mi"
