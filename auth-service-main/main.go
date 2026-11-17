@@ -91,7 +91,7 @@ func main() {
 	handler := otelhttp.NewHandler(mux, "http-server")
 	srv := &http.Server{Addr: ":" + port, Handler: handler}
 
-	slog.Error("Serviço de Autenticação (Go) rodando na porta", "", port)
+	slog.Info("Serviço de Autenticação (Go) rodando na porta", "", port)
 	if err := srv.ListenAndServe(); err != nil {
 		slog.Error("", "Erro", err.Error())
 	}

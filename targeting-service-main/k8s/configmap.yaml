@@ -5,7 +5,7 @@ metadata:
   namespace: toggle
 data:
   PORT: "8003"
-  AUTH_SERVICE_URL: "http://auth-service.auth.svc.cluster.local:8001"
+  AUTH_SERVICE_URL: "http://auth-service.toggle.svc.cluster.local:8001"
   OTEL_SERVICE_NAME: "targeting-service"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4318"
   OTEL_EXPORTER_OTLP_INSECURE: "true"
