@@ -7,11 +7,14 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o evaluation-service .
 
+RUN apk --no-cache add ca-certificates
+
 # Final stage
 FROM scratch
 
 WORKDIR /app
 
 COPY --from=builder /app/evaluation-service .
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 CMD ["./evaluation-service"]
