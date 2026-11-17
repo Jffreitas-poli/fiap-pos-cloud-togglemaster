@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: flag-container
-          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-flag:b0e5129f
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-flag:5376a92e
           resources:
             requests:
               memory: "64Mi"
