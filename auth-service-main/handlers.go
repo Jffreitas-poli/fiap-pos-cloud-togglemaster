@@ -1,12 +1,12 @@
 package main
 
 import (
-	//"crypto/sha256"
-	//"encoding/hex"
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
+
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 )
 
 // Estrutura para o corpo da requisição de criação de chave
@@ -23,9 +23,13 @@ type CreateKeyResponse struct {
 
 // healthHandler é um simples endpoint de verificação de saúde
 func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
+	// Bridge standard slog to OpenTelemetry Logs
+	logger := otelslog.NewLogger("auth-service")
+	slog.SetDefault(logger)
+
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
-		log.Printf("Falha no json encode da mensagem de retorno")
+		slog.Log(r.Context(), slog.LevelError, "Falha no json encode da mensagem de retorno")
 		http.Error(w, "Falha na criação da mensagem de retorno do healthcheck", http.StatusUnauthorized)
 		return
 	}
@@ -33,6 +37,10 @@ func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
 
 // validateKeyHandler verifica se uma chave de API (enviada via Header) é válida
 func (a *App) validateKeyHandler(w http.ResponseWriter, r *http.Request) {
+	// Bridge standard slog to OpenTelemetry Logs
+	logger := otelslog.NewLogger("auth-service")
+	slog.SetDefault(logger)
+
 	// Extrai a chave do header "Authorization: Bearer <key>"
 	authHeader := r.Header.Get("Authorization")
 	keyString := strings.TrimPrefix(authHeader, "Bearer ")
@@ -50,7 +58,7 @@ func (a *App) validateKeyHandler(w http.ResponseWriter, r *http.Request) {
 	err := a.DB.QueryRow("SELECT id FROM api_keys WHERE key_hash = $1 AND is_active = true", keyHash).Scan(&id)
 	if err != nil {
 		// Se não encontrar (sql.ErrNoRows), ou qualquer outro erro, a chave é inválida
-		log.Printf("Falha na validação da chave (hash: %s...): %v", keyHash[:6], err)
+		slog.Log(r.Context(), slog.LevelError, "Falha na validação da chave.", "Hash", keyHash[:6], "Erro", err.Error())
 		http.Error(w, "Chave de API inválida ou inativa", http.StatusUnauthorized)
 		return
 	}
@@ -58,7 +66,7 @@ func (a *App) validateKeyHandler(w http.ResponseWriter, r *http.Request) {
 	// Chave válida
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"message": "Chave válida"}); err != nil {
-		log.Printf("Falha no json encode da mensagem de retorno")
+		slog.Log(r.Context(), slog.LevelError, "Falha no json encode da mensagem de retorno")
 		http.Error(w, "Falha na criação da mensagem de retorno ao validar chave de API", http.StatusUnauthorized)
 		return
 	}
@@ -66,6 +74,10 @@ func (a *App) validateKeyHandler(w http.ResponseWriter, r *http.Request) {
 
 // createKeyHandler cria uma nova chave de API
 func (a *App) createKeyHandler(w http.ResponseWriter, r *http.Request) {
+	// Bridge standard slog to OpenTelemetry Logs
+	logger := otelslog.NewLogger("auth-service")
+	slog.SetDefault(logger)
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
 		return
@@ -98,19 +110,19 @@ func (a *App) createKeyHandler(w http.ResponseWriter, r *http.Request) {
 	).Scan(&newID)
 
 	if err != nil {
-		log.Printf("Erro ao salvar a chave no banco: %v", err)
+		slog.Log(r.Context(), slog.LevelError, "Erro ao salvar a chave no banco.", "Erro", err.Error())
 		http.Error(w, "Erro ao salvar a chave", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("Nova chave criada com sucesso (ID: %d, Name: %s)", newID, req.Name)
+	slog.Log(r.Context(), slog.LevelInfo, "Nova chave criada com sucesso.", "ID", newID, "Name", req.Name)
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(CreateKeyResponse{
 		Name:    req.Name,
 		Key:     newKey, // Retorna a chave em texto plano pela última vez
 		Message: "Guarde esta chave com segurança! Você não poderá vê-la novamente.",
 	}); err != nil {
-		log.Printf("Falha no json encode da mensagem de retorno")
+		slog.Log(r.Context(), slog.LevelError, "Falha no json encode da mensagem de retorno")
 		http.Error(w, "Falha na criação da mensagem de retorno ao criar chave de API", http.StatusUnauthorized)
 		return
 	}
