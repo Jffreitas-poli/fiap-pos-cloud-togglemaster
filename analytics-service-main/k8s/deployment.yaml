@@ -18,7 +18,7 @@ spec:
       serviceAccountName: analytics-service
       containers:
         - name: analytics-container
-          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-analytics:0032ef59
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-analytics:98308afd
           resources:
             requests:
               memory: "64Mi"
