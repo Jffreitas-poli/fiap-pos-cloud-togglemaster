@@ -146,10 +146,10 @@ module "loki_irsa" {
           "s3:DeleteObject"
         ]
         Resource = [
-          "arn:aws:s3:::${var.loki_chunk_bucket_name}",
-          "arn:aws:s3:::${var.loki_chunk_bucket_name}/*",
-          "arn:aws:s3:::${var.loki_ruler_bucket_name}",
-          "arn:aws:s3:::${var.loki_ruler_bucket_name}/*"
+          "${var.loki_chunk_bucket_arn}",
+          "${var.loki_chunk_bucket_arn}/*",
+          "${var.loki_ruler_bucket_arn}",
+          "${var.loki_ruler_bucket_arn}/*"
         ]
       }
     ]

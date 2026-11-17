@@ -19,9 +19,9 @@ variable "oidc_provider" {
 variable "oidc_provider_arn" {
   type = string
 }
-variable "loki_chunk_bucket_name" {
+variable "loki_chunk_bucket_arn" {
   type = string
 }
-variable "loki_ruler_bucket_name" {
+variable "loki_ruler_bucket_arn" {
   type = string
 }
