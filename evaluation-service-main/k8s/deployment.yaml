@@ -15,6 +15,7 @@ spec:
       labels:
         app: evaluation
     spec:
+      serviceAccountName: evaluation-service
       containers:
         - name: evaluation-container
           image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-evaluation:89162b88
