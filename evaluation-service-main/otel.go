@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -31,7 +31,7 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	))
 
 	// 2. Trace Provider
-	traceExporter, err := otlptracegrpc.New(ctx)
+	traceExporter, err := otlptracehttp.New(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	otel.SetTracerProvider(tp)
 
 	// 3. Metric Provider
-	metricExporter, err := otlpmetricgrpc.New(ctx)
+	metricExporter, err := otlpmetrichttp.New(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	otel.SetMeterProvider(mp)
 
 	// 4. Log Provider
-	logExporter, err := otlploggrpc.New(ctx)
+	logExporter, err := otlploghttp.New(ctx)
 	if err != nil {
 		return nil, err
 	}
