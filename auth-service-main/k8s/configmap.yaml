@@ -6,5 +6,5 @@ metadata:
 data:
   PORT: "8001"
   OTEL_SERVICE_NAME: "auth-service"
-  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.observability.svc.cluster.local:4318"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-opentelemetry-collector.observability.svc.cluster.local:4318"
   OTEL_EXPORTER_OTLP_INSECURE: "true"
