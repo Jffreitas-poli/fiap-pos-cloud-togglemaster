@@ -10,3 +10,6 @@ data:
   TARGETING_SERVICE_URL: "http://targeting-service.targeting.svc.cluster.local:8003"
   AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/047719652987/tc-prod-sqs"
   AWS_REGION: "us-east-1"
+  OTEL_SERVICE_NAME: "evaluation-service"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.observability.svc.cluster.local:4318"
+  OTEL_EXPORTER_OTLP_INSECURE: "true"
