@@ -10,7 +10,25 @@ presets:
   kubernetesAttributes:
     enabled: true
 
+extraEnvs:
+  - name: LOKI_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: loki-basic-auth
+        key: username
+  - name: LOKI_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: loki-basic-auth
+        key: password
+
 config:
+  extensions:
+    health_check: {}
+    basicauth/client:
+      client_auth:
+        username: ${env:LOKI_USERNAME}
+        password: ${env:LOKI_PASSWORD}
   receivers:
     otlp:
       protocols:
@@ -24,15 +42,17 @@ config:
 
   exporters:
     # 1. Ship Logs to Loki's native OTLP endpoint
-    otlphttp/loki:
+    otlp_http/loki:
       endpoint: http://loki-gateway.loki.svc.cluster.local:80/otlp
+      auth:
+        authenticator: basicauth/client
       headers: 
         X-Scope-OrgID: "toggle"
       tls:
         insecure: true
 
     # 2. Ship Metrics to Prometheus's native OTLP endpoint
-    otlphttp/prometheus:
+    otlp_http/prometheus:
       endpoint: http://prometheus-server.prometheus.svc.cluster.local:80/api/v1/otlp
       tls:
         insecure: true
@@ -42,15 +62,16 @@ config:
       verbosity: basic
 
   service:
+    extensions: [health_check, basicauth/client]
     pipelines:
       logs:
         receivers: [otlp]
-        processors: [k8sattributes, batch]
-        exporters: [otlphttp/loki]
+        processors: [k8s_attributes, batch]
+        exporters: [otlp_http/loki]
       metrics:
         receivers: [otlp]
-        processors: [k8sattributes, batch]
-        exporters: [otlphttp/prometheus]
+        processors: [k8s_attributes, batch]
+        exporters: [otlp_http/prometheus]
       traces:
         receivers: [otlp]
         processors: [batch]
