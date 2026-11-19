@@ -26,9 +26,9 @@ const (
 )
 
 // getDecision é o wrapper principal
-func (a *App) getDecision(userID, flagName string) (bool, error) {
+func (a *App) getDecision(userID, flagName string, r *http.Request) (bool, error) {
 	// 1. Obter os dados da flag (do cache ou dos serviços)
-	info, err := a.getCombinedFlagInfo(flagName)
+	info, err := a.getCombinedFlagInfo(flagName, r)
 	if err != nil {
 		return false, err
 	}
@@ -38,7 +38,7 @@ func (a *App) getDecision(userID, flagName string) (bool, error) {
 }
 
 // getCombinedFlagInfo busca os dados no Redis, com fallback para os microsserviços
-func (a *App) getCombinedFlagInfo(flagName string) (*CombinedFlagInfo, error) {
+func (a *App) getCombinedFlagInfo(flagName string, r *http.Request) (*CombinedFlagInfo, error) {
 	// Bridge standard slog to OpenTelemetry Logs
 	logger := otelslog.NewLogger("auth-service")
 	slog.SetDefault(logger)
@@ -46,7 +46,7 @@ func (a *App) getCombinedFlagInfo(flagName string) (*CombinedFlagInfo, error) {
 	cacheKey := fmt.Sprintf("flag_info:%s", flagName)
 
 	// 1. Tentar buscar do Cache (Redis)
-	val, err := a.RedisClient.Get(ctx, cacheKey).Result()
+	val, err := a.RedisClient.Get(r.Context(), cacheKey).Result()
 	if err == nil {
 		// Cache HIT
 		var info CombinedFlagInfo
@@ -60,7 +60,7 @@ func (a *App) getCombinedFlagInfo(flagName string) (*CombinedFlagInfo, error) {
 
 	slog.Info("Cache MISS para flag.", "Flag", flagName)
 	// 2. Cache MISS - Buscar dos serviços
-	info, err := a.fetchFromServices(flagName)
+	info, err := a.fetchFromServices(flagName, r)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (a *App) getCombinedFlagInfo(flagName string) (*CombinedFlagInfo, error) {
 	// 3. Salvar no Cache
 	jsonData, err := json.Marshal(info)
 	if err == nil {
-		if err := a.RedisClient.Set(ctx, cacheKey, jsonData, CACHE_TTL).Err(); err != nil {
+		if err := a.RedisClient.Set(r.Context(), cacheKey, jsonData, CACHE_TTL).Err(); err != nil {
 			slog.Error("Falha na gravação do cache redis")
 		}
 	}
@@ -77,7 +77,7 @@ func (a *App) getCombinedFlagInfo(flagName string) (*CombinedFlagInfo, error) {
 }
 
 // fetchFromServices busca dados do flag-service e targeting-service concorrentemente
-func (a *App) fetchFromServices(flagName string) (*CombinedFlagInfo, error) {
+func (a *App) fetchFromServices(flagName string, r *http.Request) (*CombinedFlagInfo, error) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
@@ -92,13 +92,13 @@ func (a *App) fetchFromServices(flagName string) (*CombinedFlagInfo, error) {
 	// Goroutine 1: Buscar do flag-service
 	go func() {
 		defer wg.Done()
-		flagInfo, flagErr = a.fetchFlag(flagName)
+		flagInfo, flagErr = a.fetchFlag(flagName, r)
 	}()
 
 	// Goroutine 2: Buscar do targeting-service
 	go func() {
 		defer wg.Done()
-		ruleInfo, ruleErr = a.fetchRule(flagName)
+		ruleInfo, ruleErr = a.fetchRule(flagName, r)
 	}()
 
 	wg.Wait()
@@ -117,7 +117,7 @@ func (a *App) fetchFromServices(flagName string) (*CombinedFlagInfo, error) {
 }
 
 // fetchFlag (função helper)
-func (a *App) fetchFlag(flagName string) (*Flag, error) {
+func (a *App) fetchFlag(flagName string, r *http.Request) (*Flag, error) {
 	url := fmt.Sprintf("%s/flags/%s", a.FlagServiceURL, flagName)
 
 	apiKey := os.Getenv("SERVICE_API_KEY")
@@ -134,7 +134,7 @@ func (a *App) fetchFlag(flagName string) (*Flag, error) {
 
 	// Pass safeURL.String() or safeURL to http.NewRequest
 	// #nosec G704 -- URL is validated by ValidateAndSanitizeURL prior to request creation
-	req, err := http.NewRequest("GET", safeURL.String(), nil)
+	req, err := http.NewRequestWithContext(r.Context(), "GET", safeURL.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("URL validation failed: %w", err)
 	}
@@ -167,7 +167,7 @@ func (a *App) fetchFlag(flagName string) (*Flag, error) {
 	return &flag, nil
 }
 
-func (a *App) fetchRule(flagName string) (*TargetingRule, error) {
+func (a *App) fetchRule(flagName string, r *http.Request) (*TargetingRule, error) {
 	url := fmt.Sprintf("%s/rules/%s", a.TargetingServiceURL, flagName)
 	apiKey := os.Getenv("SERVICE_API_KEY") // Usa a mesma chave
 
@@ -183,7 +183,7 @@ func (a *App) fetchRule(flagName string) (*TargetingRule, error) {
 
 	// Pass safeURL.String() or safeURL to http.NewRequest
 	// #nosec G704 -- URL is validated by ValidateAndSanitizeURL prior to request creation
-	req, err := http.NewRequest("GET", safeURL.String(), nil)
+	req, err := http.NewRequestWithContext(r.Context(), "GET", safeURL.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("URL validation failed: %w", err)
 	}
