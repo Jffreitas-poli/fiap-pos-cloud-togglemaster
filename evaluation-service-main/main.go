@@ -18,9 +18,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-// Contexto global para o Redis
-var ctx = context.Background()
-
 // App struct para injeção de dependência
 type App struct {
 	RedisClient         *redis.Client
