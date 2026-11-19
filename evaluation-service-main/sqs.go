@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -39,9 +40,12 @@ func (a *App) sendEvaluationEvent(userID, flagName string, result bool, r *http.
 		return
 	}
 
+	sqsCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 5*time.Second)
+	defer cancel()
+
 	// Envia a mensagem
 	_, err = a.SqsSvc.SendMessageWithContext(
-		r.Context(),
+		sqsCtx,
 		&sqs.SendMessageInput{
 			MessageBody: aws.String(string(body)),
 			QueueUrl:    aws.String(a.SqsQueueURL),
