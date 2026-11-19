@@ -5,6 +5,8 @@ import requests
 import json
 from psycopg2.extras import RealDictCursor, Json
 from psycopg2.pool import SimpleConnectionPool
+from opentelemetry import trace
+from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from functools import wraps
@@ -28,6 +30,7 @@ if not DATABASE_URL or not AUTH_SERVICE_URL:
     sys.exit(1)
 
 # --- Pool de Conexão com o Banco ---
+Psycopg2Instrumentor().instrument()
 try:
     pool = SimpleConnectionPool(1, 5, dsn=DATABASE_URL)
     log.info("Pool de conexões com o PostgreSQL (targeting) inicializado.")
