@@ -5,7 +5,6 @@ import requests
 import json
 from psycopg2.extras import RealDictCursor, Json
 from psycopg2.pool import SimpleConnectionPool
-from opentelemetry import trace
 from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
