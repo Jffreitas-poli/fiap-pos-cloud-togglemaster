@@ -18,7 +18,7 @@ spec:
       serviceAccountName: evaluation-service
       containers:
         - name: evaluation-container
-          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-evaluation:c225f550
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-evaluation:5afa2544
           resources:
             requests:
               memory: "64Mi"
