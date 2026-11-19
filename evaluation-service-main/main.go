@@ -14,6 +14,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 
+	"github.com/go-redis/redis/extra/redisotel/v8"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -92,6 +93,7 @@ func main() {
 	if _, err := rdb.Ping(ctx).Result(); err != nil {
 		slog.Error("Não foi possível conectar ao Redis.", "Erro", err.Error())
 	}
+	rdb.AddHook(redisotel.NewTracingHook())
 	slog.Info("Conectado ao Redis com sucesso!")
 
 	// Cliente SQS (AWS SDK)
@@ -102,6 +104,7 @@ func main() {
 			slog.Error("Não foi possível criar sessão AWS.", "Erro", err.Error())
 		}
 		sqsSvc = sqs.New(sess)
+		attachSQSOTelHandlers(sqsSvc)
 		slog.Info("Cliente SQS inicializado com sucesso.")
 	}
 

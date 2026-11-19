@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -12,6 +13,11 @@ import (
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+
+	"github.com/aws/aws-sdk-go/aws/request"
+	"github.com/aws/aws-sdk-go/service/sqs"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, err error) {
@@ -58,4 +64,38 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	otel.SetLoggerProvider(lp)
 
 	return shutdown, nil
+}
+
+func attachSQSOTelHandlers(svc *sqs.SQS) {
+	tracer := otel.Tracer("my-service/sqs-v1")
+
+	svc.Handlers.Build.PushBack(func(r *request.Request) {
+		opName := "SQS " + r.Operation.Name
+		ctx, span := tracer.Start(
+			r.Context(),
+			opName,
+			trace.WithSpanKind(trace.SpanKindClient),
+			trace.WithAttributes(
+				attribute.String("rpc.system", "aws-api"),
+				attribute.String("rpc.service", "SQS"),
+				attribute.String("rpc.method", r.Operation.Name),
+			),
+		)
+		r.SetContext(trace.ContextWithSpan(ctx, span))
+	})
+
+	svc.Handlers.Complete.PushBack(func(r *request.Request) {
+		span := trace.SpanFromContext(r.Context())
+		if !span.SpanContext().IsValid() {
+			return
+		}
+
+		if r.Error != nil {
+			span.RecordError(r.Error)
+			span.SetStatus(codes.Error, r.Error.Error())
+		} else {
+			span.SetStatus(codes.Ok, "")
+		}
+		span.End()
+	})
 }
