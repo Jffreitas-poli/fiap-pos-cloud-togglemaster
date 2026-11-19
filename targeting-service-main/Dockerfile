@@ -11,7 +11,8 @@ COPY requirements.txt .
 # Install dependencies to an isolated folder
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt \
     opentelemetry-distro \
-    opentelemetry-exporter-otlp
+    opentelemetry-exporter-otlp \
+    opentelemetry-instrumentation-psycopg2
 
 RUN PYTHONPATH=/install/lib/python3.11/site-packages \
     PIP_PREFIX=/install \
