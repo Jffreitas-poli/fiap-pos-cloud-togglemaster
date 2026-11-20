@@ -20,11 +20,11 @@ spec:
           image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-auth:94fd1070
           resources:
             requests:
-              memory: "64Mi"
-              cpu: "20m"
-            limits:
               memory: "128Mi"
               cpu: "40m"
+            limits:
+              memory: "256Mi"
+              cpu: "80m"
           ports:
             - containerPort: 8001
           envFrom:
