@@ -37,17 +37,13 @@ spec:
             httpGet:
               path: /health
               port: 8004
-            failureThreshold: 5
-            periodSeconds: 40
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 30
           readinessProbe:
             httpGet:
               path: /health
               port: 8004
-            initialDelaySeconds: 40
-            periodSeconds: 40
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 8004
-            initialDelaySeconds: 40
-            periodSeconds: 40
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
