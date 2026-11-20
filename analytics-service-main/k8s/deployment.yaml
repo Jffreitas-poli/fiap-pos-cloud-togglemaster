@@ -22,10 +22,10 @@ spec:
           resources:
             requests:
               memory: "128Mi"
-              cpu: "40m"
+              cpu: "128m"
             limits:
               memory: "256Mi"
-              cpu: "80m"
+              cpu: "256m"
           ports:
             - containerPort: 8005
           envFrom:
@@ -35,5 +35,5 @@ spec:
             httpGet:
               path: /health
               port: 8005
-            initialDelaySeconds: 40
-            periodSeconds: 40
+            initialDelaySeconds: 60
+            periodSeconds: 60
