@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: targeting-container
-          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-targeting:6de8fac2
+          image: 047719652987.dkr.ecr.us-east-1.amazonaws.com/tc-prod-ecr-targeting:916d3e4d
           resources:
             requests:
               memory: "128Mi"
