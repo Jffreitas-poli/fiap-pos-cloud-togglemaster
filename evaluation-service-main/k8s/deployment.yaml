@@ -33,6 +33,18 @@ spec:
                 name: evaluation-configmap
             - secretRef:
                 name: evaluation-secret
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            failureThreshold: 5
+            periodSeconds: 40
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 40
+            periodSeconds: 40
           livenessProbe:
             httpGet:
               path: /health

@@ -32,6 +32,18 @@ spec:
                 name: targeting-configmap
             - secretRef:
                 name: targeting-secret
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            failureThreshold: 5
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 20
+            periodSeconds: 20
           livenessProbe:
             httpGet:
               path: /health

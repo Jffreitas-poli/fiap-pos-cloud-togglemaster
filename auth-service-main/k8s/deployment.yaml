@@ -32,6 +32,18 @@ spec:
                 name: auth-configmap
             - secretRef:
                 name: auth-secret
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            failureThreshold: 5
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 20
+            periodSeconds: 20
           livenessProbe:
             httpGet:
               path: /health

@@ -31,6 +31,18 @@ spec:
           envFrom:
             - configMapRef:
                 name: analytics-configmap
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8005
+            failureThreshold: 5
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8005
+            initialDelaySeconds: 60
+            periodSeconds: 60
           livenessProbe:
             httpGet:
               path: /health
