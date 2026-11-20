@@ -32,6 +32,18 @@ spec:
                 name: flag-configmap
             - secretRef:
                 name: flag-secret
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            failureThreshold: 5
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 20
+            periodSeconds: 20
           livenessProbe:
             httpGet:
               path: /health
